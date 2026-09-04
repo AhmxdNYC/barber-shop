@@ -23,13 +23,13 @@ export type TimeOffRow = {
  * caught in the window instead.
  */
 export function TimeOffEditor({
-  barberId,
+  barbers,
   rows,
   timeZone,
   defaultStart,
 }: {
-  barberId: string;
-  rows: TimeOffRow[];
+  barbers: { id: string; name: string }[];
+  rows: (TimeOffRow & { barberName?: string })[];
   timeZone: string;
   defaultStart: string;
 }) {
@@ -49,8 +49,15 @@ export function TimeOffEditor({
   return (
     <div>
       <form action={action} className="rounded-[3px] border border-line bg-surface p-4">
-        <input type="hidden" name="barberId" value={barberId} />
         <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block sm:col-span-2">
+            <span className={LABEL}>Whose time off</span>
+            <select name="barberId" className={INPUT} defaultValue={barbers[0]?.id}>
+              {barbers.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </label>
           <label className="block">
             <span className={LABEL}>From</span>
             <input type="datetime-local" name="start" defaultValue={defaultStart} className={INPUT} required />
@@ -82,10 +89,13 @@ export function TimeOffEditor({
           {rows.map((row) => (
             <li key={row.id} className="flex items-center justify-between gap-3 bg-surface px-4 py-3 text-sm">
               <span>
-                <span className="font-semibold tabular-nums">
+                {row.barberName && (
+                  <span className="mr-2 font-semibold">{row.barberName}</span>
+                )}
+                <span className="tabular-nums text-bone-2">
                   {fmt.format(row.startsAt)} &ndash; {fmt.format(row.endsAt)}
                 </span>
-                {row.reason && <span className="ml-2 text-bone-2">{row.reason}</span>}
+                {row.reason && <span className="ml-2 text-bone-3">{row.reason}</span>}
               </span>
               <form action={deleteTimeOffAction}>
                 <input type="hidden" name="id" value={row.id} />

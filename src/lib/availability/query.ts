@@ -56,7 +56,8 @@ export async function slotsForBarber(
   const dayOfWeek = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   const { from, to } = utcWindowForDate(date);
 
-  const [weekly, override, blocks, appointments, timeOff] = await Promise.all([
+  const [shopDay, weekly, override, blocks, appointments, timeOff] = await Promise.all([
+    prisma.shopHours.findUnique({ where: { dayOfWeek } }),
     prisma.workingHours.findUnique({
       where: { barberId_dayOfWeek: { barberId: barber.id, dayOfWeek } },
     }),
@@ -85,7 +86,7 @@ export async function slotsForBarber(
   ]);
 
   // A DateOverride replaces the weekly template for that date only.
-  const hours = override
+  const barberHours = override
     ? {
         opensAtMinutes: override.opensAtMinutes ?? weekly?.opensAtMinutes ?? 0,
         closesAtMinutes: override.closesAtMinutes ?? weekly?.closesAtMinutes ?? 0,
@@ -98,6 +99,11 @@ export async function slotsForBarber(
           isClosed: weekly.isClosed,
         }
       : null;
+
+  // The shop is the outer boundary. A barber cannot work before it opens or
+  // after it shuts, and if the shop is closed nobody is bookable regardless
+  // of what their own hours say.
+  const hours = intersectWithShop(barberHours, shopDay);
 
   return generateSlots({
     date,
@@ -136,4 +142,30 @@ export async function slotsForAnyBarber(
   );
 
   return mergeSlotsAcrossBarbers(perBarber);
+}
+
+
+type Window = { opensAtMinutes: number; closesAtMinutes: number; isClosed: boolean };
+
+/**
+ * Narrows a barber's hours to the shop's opening times.
+ *
+ * Returns null when the result is empty — the shop is shut that day, the
+ * barber is off, or their hours fall entirely outside the shop's.
+ */
+function intersectWithShop(
+  barber: Window | null,
+  shop: Window | null,
+): Window | null {
+  if (!barber || barber.isClosed) return null;
+  // With no shop hours configured the barber's own hours stand, so an
+  // unseeded database still books rather than silently refusing everything.
+  if (!shop) return barber;
+  if (shop.isClosed) return null;
+
+  const opens = Math.max(barber.opensAtMinutes, shop.opensAtMinutes);
+  const closes = Math.min(barber.closesAtMinutes, shop.closesAtMinutes);
+  if (closes <= opens) return null;
+
+  return { opensAtMinutes: opens, closesAtMinutes: closes, isClosed: false };
 }

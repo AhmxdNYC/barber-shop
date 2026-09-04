@@ -38,6 +38,21 @@ async function main() {
     },
   });
 
+  // The shop's own opening hours — the outer boundary every barber works
+  // inside. Seeded from the published hours.
+  for (const [dayOfWeek, day] of HOURS.entries()) {
+    await prisma.shopHours.upsert({
+      where: { dayOfWeek },
+      create: {
+        dayOfWeek,
+        opensAtMinutes: day.opens ?? 0,
+        closesAtMinutes: day.closes ?? 0,
+        isClosed: day.opens === null,
+      },
+      update: {},
+    });
+  }
+
   for (const [i, s] of SERVICES.entries()) {
     await prisma.service.upsert({
       where: { slug: s.slug },

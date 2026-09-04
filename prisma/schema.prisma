@@ -201,6 +201,21 @@ model BarberService {
   @@id([barberId, serviceId])
 }
 
+/// The shop's own opening hours, one row per weekday.
+///
+/// This is the outer boundary: the shop can be shut on a day when a barber
+/// would otherwise be working, and nothing can be booked outside it. Barber
+/// WorkingHours sit inside this, and availability is the intersection of the
+/// two — which is why deriving shop hours from the barbers was wrong, since
+/// it made it impossible to close the shop without editing every chair.
+model ShopHours {
+  id              String  @id @default(cuid())
+  dayOfWeek       Int     @unique // 0 = Sunday
+  opensAtMinutes  Int
+  closesAtMinutes Int
+  isClosed        Boolean @default(false)
+}
+
 /// Weekly template, one row per barber per weekday.
 model WorkingHours {
   id              String  @id @default(cuid())

@@ -19,6 +19,7 @@ done, with 37 tests. Writing bookings and taking deposits is the next piece.
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Why — including what was wrong first |
 | [PLAN.md](PLAN.md) | Full feature set, data model, build phases, costs |
 | [docs/SHOP-INTAKE.md](docs/SHOP-INTAKE.md) | What still needs collecting from the shop |
+| [docs/IOS-AND-DISTRIBUTION.md](docs/IOS-AND-DISTRIBUTION.md) | Getting it onto a phone, and what the App Store costs |
 
 ## Run it
 
@@ -50,7 +51,6 @@ writes and deletes rows.
 | `/book` | Four-step booking: barber → service → time → details |
 | `/login` | Barber sign-in (not linked from the public site) |
 | `/dashboard` | Barber-only: the day, stats, walk-ins |
-| `/dashboard/availability` | Per-barber hours, lunch breaks, time off |
 | `/dashboard/clients` | Visit history, no-shows, private notes |
 | `/dashboard/settings` | Sign in another device, sign out |
 | `/booking/[token]` | Guest booking management — reschedule or cancel, no account |

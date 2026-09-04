@@ -3,16 +3,15 @@ import { prisma } from "@/lib/db/client";
 import type { DayHours } from "./hours";
 
 /**
- * The shop's opening hours, derived from who is actually working.
+ * The shop's published opening hours.
  *
- * These used to be a hardcoded array while availability came from the
- * database, so editing hours in the dashboard changed what could be booked
- * without changing what the website advertised. A client could read "open
- * until 7:30" and find no slots after five.
+ * These are set explicitly rather than derived from whoever happens to be
+ * working. Deriving them meant the shop could not be closed on a day without
+ * editing every barber's schedule, and it read backwards: a shop decides its
+ * own hours, and its barbers work inside them.
  *
- * Deriving them removes the possibility: the shop is open when a barber is
- * working, it opens when the first one starts and closes when the last one
- * finishes. One source of truth, no synchronisation to forget.
+ * The availability engine intersects the two, so nothing can be booked
+ * outside these times whatever a barber's own hours say.
  */
 const DAY_NAMES = [
   "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
@@ -21,21 +20,19 @@ const DAY_NAMES = [
 const SHORT_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
 export async function openingHours(): Promise<DayHours[]> {
-  const rows = await prisma.workingHours.findMany({
-    where: { isClosed: false, barber: { isActive: true } },
-    select: { dayOfWeek: true, opensAtMinutes: true, closesAtMinutes: true },
-  });
+  const rows = await prisma.shopHours.findMany();
+  const byDay = new Map(rows.map((r) => [r.dayOfWeek, r]));
 
   return DAY_NAMES.map((day, dayOfWeek) => {
-    const forDay = rows.filter((r) => r.dayOfWeek === dayOfWeek);
-    if (forDay.length === 0) {
+    const row = byDay.get(dayOfWeek);
+    if (!row || row.isClosed) {
       return { day, short: SHORT_NAMES[dayOfWeek], opens: null, closes: null };
     }
     return {
       day,
       short: SHORT_NAMES[dayOfWeek],
-      opens: Math.min(...forDay.map((r) => r.opensAtMinutes)),
-      closes: Math.max(...forDay.map((r) => r.closesAtMinutes)),
+      opens: row.opensAtMinutes,
+      closes: row.closesAtMinutes,
     };
   });
 }

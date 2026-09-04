@@ -5,9 +5,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/client";
 import { requireBarber } from "@/lib/auth/current-user";
 import { createAppointment } from "@/lib/booking/create-appointment";
+import { rescheduleAppointment } from "@/lib/booking/reschedule";
+import { slotsForBarber } from "@/lib/availability/query";
+import { formatMinutes } from "@/lib/shop";
 import { fromZonedTime } from "date-fns-tz";
 import { bookingDetailsFor } from "@/lib/notifications/booking-details";
-import { sendBookingCancelled } from "@/lib/notifications/send";
+import { sendBookingCancelled, sendBookingConfirmation } from "@/lib/notifications/send";
 
 /**
  * Barber-side appointment actions.
@@ -192,4 +195,72 @@ export async function createWalkInAction(
  */
 function shopLocalToUtc(local: string, timeZone: string): Date {
   return fromZonedTime(`${local}:00`, timeZone);
+}
+
+
+/**
+ * Open times for moving an appointment, from the barber's side.
+ *
+ * Same barber and service — moving someone to a different barber is a
+ * different conversation, and doing it silently from a calendar drag would
+ * be a good way to have two people expect the same person.
+ */
+export async function barberRescheduleOptionsAction(
+  appointmentId: string,
+  date: string,
+): Promise<{ start: string; label: string }[]> {
+  await requireBarber();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return [];
+
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    select: {
+      barber: { select: { slug: true } },
+      service: { select: { slug: true } },
+    },
+  });
+  if (!appointment) return [];
+
+  const slots = await slotsForBarber(
+    appointment.barber.slug,
+    appointment.service.slug,
+    date,
+  );
+  return slots.map((s) => ({
+    start: s.start.toISOString(),
+    label: formatMinutes(s.startMinutes),
+  }));
+}
+
+export type BarberRescheduleState = { error?: string; moved?: boolean };
+
+export async function barberRescheduleAction(
+  _previous: BarberRescheduleState,
+  formData: FormData,
+): Promise<BarberRescheduleState> {
+  await requireBarber();
+
+  const parsed = z
+    .object({
+      id: z.string().min(1).max(40),
+      start: z.string().min(10).max(40),
+    })
+    .safeParse({ id: formData.get("id"), start: formData.get("start") });
+
+  if (!parsed.success) return { error: "Pick a time." };
+
+  const start = new Date(parsed.data.start);
+  if (Number.isNaN(start.getTime())) return { error: "That time is not valid." };
+
+  const result = await rescheduleAppointment(parsed.data.id, start);
+  if (!result.ok) return { error: result.message };
+
+  // The client did not ask for this, so tell them the new time.
+  const context = await bookingDetailsFor(parsed.data.id);
+  if (context) {
+    await sendBookingConfirmation(parsed.data.id, context.recipient, context.details);
+  }
+
+  revalidatePath("/dashboard");
+  return { moved: true };
 }

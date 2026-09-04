@@ -206,3 +206,66 @@ export async function deleteRecurringBlockAction(formData: FormData) {
   await prisma.recurringBlock.delete({ where: { id } });
   revalidatePath("/dashboard/availability");
 }
+
+
+/* ── shop opening hours ────────────────────────────────────────── */
+
+const ShopHoursInput = z.object({
+  dayOfWeek: z.coerce.number().int().min(0).max(6),
+  opensAt: z.string().max(5),
+  closesAt: z.string().max(5),
+  isClosed: z.coerce.boolean().optional(),
+});
+
+/**
+ * The shop's own opening hours.
+ *
+ * Closing the shop on a day closes it for everyone, without touching any
+ * barber's schedule — which is the point of having shop hours at all.
+ */
+export async function saveShopHoursAction(
+  _previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireBarber();
+
+  const parsed = ShopHoursInput.safeParse({
+    dayOfWeek: formData.get("dayOfWeek"),
+    opensAt: formData.get("opensAt"),
+    closesAt: formData.get("closesAt"),
+    isClosed: formData.get("isClosed") === "on",
+  });
+  if (!parsed.success) return { error: "Those times are not valid." };
+
+  const { dayOfWeek, isClosed } = parsed.data;
+  const opens = timeInputToMinutes(parsed.data.opensAt);
+  const closes = timeInputToMinutes(parsed.data.closesAt);
+
+  if (!isClosed) {
+    if (opens === null || closes === null) {
+      return { error: "Enter both an opening and a closing time." };
+    }
+    if (closes <= opens) {
+      return { error: "Closing time has to be after opening time." };
+    }
+  }
+
+  await prisma.shopHours.upsert({
+    where: { dayOfWeek },
+    create: {
+      dayOfWeek,
+      opensAtMinutes: opens ?? 0,
+      closesAtMinutes: closes ?? 0,
+      isClosed: Boolean(isClosed),
+    },
+    update: {
+      opensAtMinutes: opens ?? 0,
+      closesAtMinutes: closes ?? 0,
+      isClosed: Boolean(isClosed),
+    },
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { ok: isClosed ? "Marked closed." : "Shop hours saved." };
+}

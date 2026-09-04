@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { minutesToTimeInput } from "@/lib/shop";
+import { AppointmentSheet, type SheetAppointment } from "./appointment-sheet";
 import type { BarberDay, ScheduleBlock } from "@/lib/dashboard/day-schedule";
 
 /**
@@ -24,11 +28,17 @@ export function DayCalendar({
   days,
   nowMinutes,
   isToday,
+  appointments,
+  rescheduleDays,
 }: {
   days: BarberDay[];
   nowMinutes: number;
   isToday: boolean;
+  /** Detail for each appointment block, keyed by id. */
+  appointments: Record<string, SheetAppointment>;
+  rescheduleDays: { date: string; weekday: string; dayNum: string }[];
 }) {
+  const [selected, setSelected] = useState<string | null>(null);
   const open = days.filter((d) => !d.isClosed);
 
   if (open.length === 0) {
@@ -94,7 +104,16 @@ export function DayCalendar({
               {day.isClosed && <Shade top={0} height={height} />}
 
               {day.blocks.map((block) => (
-                <Block key={block.id} block={block} from={from} />
+                <Block
+                  key={block.id}
+                  block={block}
+                  from={from}
+                  onSelect={
+                    block.kind === "appointment" && appointments[block.id]
+                      ? () => setSelected(block.id)
+                      : undefined
+                  }
+                />
               ))}
 
               {isToday && nowMinutes >= from && nowMinutes <= to && (
@@ -109,6 +128,14 @@ export function DayCalendar({
           </div>
         ))}
       </div>
+
+      {selected && appointments[selected] && (
+        <AppointmentSheet
+          appointment={appointments[selected]}
+          days={rescheduleDays}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
@@ -130,7 +157,15 @@ const BLOCK_STYLES: Record<ScheduleBlock["kind"], string> = {
   timeoff: "border-accent bg-accent-dim text-bone-2",
 };
 
-function Block({ block, from }: { block: ScheduleBlock; from: number }) {
+function Block({
+  block,
+  from,
+  onSelect,
+}: {
+  block: ScheduleBlock;
+  from: number;
+  onSelect?: () => void;
+}) {
   const top = (block.startMinutes - from) * PX_PER_MINUTE;
   const height = Math.max(
     18,
@@ -139,11 +174,19 @@ function Block({ block, from }: { block: ScheduleBlock; from: number }) {
   const isNoShow = block.status === "NO_SHOW";
   const isDone = block.status === "COMPLETED";
 
+  const className = `absolute inset-x-1 z-10 overflow-hidden rounded-[3px] border px-2 py-1 text-left ${
+    BLOCK_STYLES[block.kind]
+  } ${isNoShow ? "border-accent bg-accent-dim" : ""} ${isDone ? "opacity-55" : ""} ${
+    onSelect ? "cursor-pointer hover:brightness-125" : ""
+  }`;
+
+  const Tag = onSelect ? "button" : "div";
+
   return (
-    <div
-      className={`absolute inset-x-1 z-10 overflow-hidden rounded-[3px] border px-2 py-1 ${
-        BLOCK_STYLES[block.kind]
-      } ${isNoShow ? "border-accent bg-accent-dim" : ""} ${isDone ? "opacity-55" : ""}`}
+    <Tag
+      type={onSelect ? "button" : undefined}
+      onClick={onSelect}
+      className={className}
       style={{ top, height }}
       title={`${minutesToTimeInput(block.startMinutes)} ${block.title}`}
     >
@@ -160,6 +203,6 @@ function Block({ block, from }: { block: ScheduleBlock; from: number }) {
           {minutesToTimeInput(block.startMinutes)}
         </p>
       )}
-    </div>
+    </Tag>
   );
 }

@@ -47,40 +47,27 @@ suite("live shop content", () => {
     expect(services.some((s) => s.slug === "haircut")).toBe(false);
   });
 
-  it("derives opening hours from the barbers who are working", async () => {
+  it("publishes the shop's own opening hours", async () => {
     const hours = await openingHours();
     expect(hours).toHaveLength(7);
 
-    const [{ opens, closes }] = await prisma.workingHours.findMany({
-      where: { dayOfWeek: 2, isClosed: false },
-      select: { opensAtMinutes: true, closesAtMinutes: true },
-    }).then((rows) => [
-      {
-        opens: Math.min(...rows.map((r) => r.opensAtMinutes)),
-        closes: Math.max(...rows.map((r) => r.closesAtMinutes)),
-      },
-    ]);
-
-    expect(hours[2].opens).toBe(opens);
-    expect(hours[2].closes).toBe(closes);
+    const tuesday = await prisma.shopHours.findUnique({ where: { dayOfWeek: 2 } });
+    expect(hours[2].opens).toBe(tuesday!.opensAtMinutes);
+    expect(hours[2].closes).toBe(tuesday!.closesAtMinutes);
   });
 
-  /** If every barber is off, the shop is shut — not "open with no slots". */
-  it("reports a day closed when nobody is working", async () => {
-    const original = await prisma.workingHours.findMany({ where: { dayOfWeek: 1 } });
-    await prisma.workingHours.updateMany({
+  it("shows a day as closed when the shop is marked closed", async () => {
+    const original = await prisma.shopHours.findUnique({ where: { dayOfWeek: 1 } });
+    await prisma.shopHours.update({
       where: { dayOfWeek: 1 },
       data: { isClosed: true },
     });
 
-    const hours = await openingHours();
-    expect(hours[1].opens).toBeNull();
+    expect((await openingHours())[1].opens).toBeNull();
 
-    for (const row of original) {
-      await prisma.workingHours.update({
-        where: { id: row.id },
-        data: { isClosed: row.isClosed },
-      });
-    }
+    await prisma.shopHours.update({
+      where: { dayOfWeek: 1 },
+      data: { isClosed: original!.isClosed },
+    });
   });
 });
