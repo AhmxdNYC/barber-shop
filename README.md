@@ -7,19 +7,37 @@ Built as a portfolio project, intended for real use by a working shop.
 
 ## Status
 
-**Frontend complete.** The public site and the full booking flow are built and
-running against a mock provider — clickable end to end, nothing persisted.
+Public site and booking flow are built. Availability is computed from a real
+Postgres database: schema, migrations, seed and the availability engine are
+done, with 37 tests. Writing bookings and taking deposits is the next piece.
 
-See [PLAN.md](PLAN.md) for the feature set, data model and build phases, and
-[docs/BOOKING-PROVIDERS.md](docs/BOOKING-PROVIDERS.md) for how to make booking
-real and what each route costs.
+**Start here:**
+
+| Document | What it covers |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the app is put together |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Why — including what was wrong first |
+| [PLAN.md](PLAN.md) | Full feature set, data model, build phases, costs |
+| [docs/SHOP-INTAKE.md](docs/SHOP-INTAKE.md) | What still needs collecting from the shop |
 
 ## Run it
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+cp .env.example .env          # set DATABASE_URL
+npm run db:migrate            # apply migrations
+npm run db:seed               # load shop content
+npm run dev                   # http://localhost:3000
 ```
+
+```bash
+npm test                      # 37 tests
+npm run verify:qr             # decode the poster QR, check the URL
+```
+
+Integration tests need a database whose name ends in `_test` (see
+`.env.test`) — the suite refuses to run against anything else, because it
+writes and deletes rows.
 
 ## Pages
 
