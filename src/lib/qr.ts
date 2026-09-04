@@ -8,7 +8,7 @@ import QRCode from "qrcode";
  * anything goes to a printer.
  */
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://barber-shop-nine-sandy.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://eduardobarbershop.vercel.app";
 
 /**
  * Renders a QR code as an inline SVG string.

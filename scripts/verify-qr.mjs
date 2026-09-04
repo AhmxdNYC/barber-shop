@@ -10,7 +10,7 @@ import { PNG } from "pngjs";
 
 const url =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://barber-shop-nine-sandy.vercel.app";
+  "https://eduardobarbershop.vercel.app";
 
 const buf = await QRCode.toBuffer(url, {
   errorCorrectionLevel: "H",
