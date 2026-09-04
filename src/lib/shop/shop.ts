@@ -34,12 +34,16 @@ export const SHOP = {
   /**
    * Sits behind the name at the top of the site.
    *
-   * A photograph of the room the client is actually walking into. Until an
-   * interior shot exists this reuses the storefront, which is at least the
-   * right building — a stock interior of a bigger shop would promise a room
-   * the shop does not have.
+   * PLACEHOLDER — this is a stock interior of a different, much larger
+   * barbershop, standing in until a photograph of Eduardo's own room
+   * exists. It shows the intended treatment; it is not the shop.
+   *
+   * It must not be live when the site is. Anyone booking on the strength of
+   * it would walk into a different room, and the photograph belongs to
+   * whoever took it. Swap this for the real interior and delete
+   * public/hero-placeholder.jpg.
    */
-  heroPhoto: "/storefront.jpg",
+  heroPhoto: "/hero-placeholder.jpg",
 
   /** Exact pin from the shop's Google Maps listing. */
   coords: { lat: 40.9291924, lng: -73.8931055 },
