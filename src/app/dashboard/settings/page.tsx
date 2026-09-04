@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireBarber } from "@/lib/auth/current-user";
 import { DeviceLink } from "@/components/dashboard/device-link";
 import { logoutAction } from "@/app/actions/auth";
@@ -14,6 +15,26 @@ export default async function SettingsPage() {
       <p className="mt-2 text-bone-2">Signed in as {barber.email}.</p>
 
       <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Poster for the shop</h2>
+        <p className="mt-1 max-w-xl text-sm text-bone-3">
+          A printable sheet with a code clients scan to book. Put it on the
+          window, the mirror or the counter — any phone camera opens it, with
+          no app to install.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Link
+            href="/poster"
+            className="rounded-[3px] bg-bone px-5 py-2.5 text-sm font-semibold text-ground transition-colors hover:bg-white"
+          >
+            Open the poster
+          </Link>
+          <span className="text-sm text-bone-3">
+            Scan a printed copy before running off a stack.
+          </span>
+        </div>
+      </section>
+
+      <section className="mt-12 border-t border-line pt-8">
         <h2 className="font-display text-xl font-bold">Your devices</h2>
         <p className="mt-1 max-w-xl text-sm text-bone-3">
           You stay signed in for a month on each device you use, so this is

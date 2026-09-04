@@ -150,24 +150,24 @@
 }
 
 /* ── printable poster ─────────────────────────────────────────────
-   The site is dark; paper is not. Printing the dark theme wastes a
-   cartridge and, worse, a low-contrast QR code scans badly. The
-   poster is therefore always black on white, on screen and on paper. */
+   The site is a black page; printing that would empty a cartridge and
+   leave a low-contrast QR code that scans badly under shop lighting.
+   The poster is therefore always black on white, on screen and on
+   paper, so the preview is honest about what comes out. */
 .poster {
   border: 1px solid #d4d4d4;
 }
 
-
 /* The generated SVG has no intrinsic size — give it one. */
 .poster__qr svg {
+  display: block;
   width: 260px;
   height: 260px;
-  display: block;
   margin: 0 auto;
 }
 
 @media print {
-  /* Chrome and Safari strip backgrounds unless told otherwise. */
+  /* Chrome and Safari drop backgrounds unless told otherwise. */
   html,
   body {
     background: #ffffff !important;
@@ -188,23 +188,16 @@
     break-inside: avoid;
   }
 
+  /* Bigger on paper, where it is scanned from across a room. */
   .poster__qr svg {
-    width: 320px;
-    height: 320px;
+    width: 330px;
+    height: 330px;
   }
 
   @page {
     margin: 16mm;
   }
 }
-
-/* The device sign-in code renders at a fixed, scannable size. */
-.device-qr svg {
-  display: block;
-  width: 180px;
-  height: 180px;
-}
-
 
 /* ── wordmark ─────────────────────────────────────────────────────
    The shop's sign is white serif capitals on a dark green board. The

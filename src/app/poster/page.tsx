@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { SHOP, ADDRESS_LINE, HOURS, formatHours } from "@/lib/shop";
+import { SHOP, ADDRESS_LINE, formatHours } from "@/lib/shop";
+import { openingHours } from "@/lib/shop/opening-hours";
 import { qrSvg, SITE_URL } from "@/lib/qr";
 import { PrintButton } from "@/components/print-button";
+import { Wordmark } from "@/components/ui/wordmark";
 
 export const metadata: Metadata = {
   title: "Printable QR poster",
@@ -9,15 +11,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const revalidate = 3600;
+
 /**
  * A print-ready scan-to-book poster.
  *
- * Deliberately not linked from the site — it is a tool for the shop, not a
- * page for clients. Print styles force it to black on white: the site is
- * dark, and a dark QR poster both burns a cartridge dry and scans badly.
+ * Everything above the poster is screen-only guidance; the poster itself is
+ * always black on white. The site is a black page, and printing that would
+ * empty a cartridge and produce a low-contrast code that scans badly under
+ * shop lighting.
  */
 export default async function PosterPage() {
-  const svg = await qrSvg();
+  const [svg, hours] = await Promise.all([qrSvg(), openingHours()]);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">
@@ -27,17 +32,18 @@ export default async function PosterPage() {
           Scan-to-book poster
         </h1>
         <p className="mt-3 max-w-xl text-bone-2">
-          Print this and put it on the window, the mirror, or the counter. Any
-          phone camera opens it &mdash; no app needed.
+          Print it for the window, the mirror, or the counter. Any phone camera
+          opens it &mdash; no app needed.
         </p>
 
-        <div className="mt-5 rounded-[3px] border border-brass-dim bg-brass-dim/40 p-4 text-sm text-brass">
-          <strong className="font-semibold">
-            Test it before you print a stack.
+        <div className="mt-5 rounded-[3px] border border-line bg-surface p-4 text-sm text-bone-2">
+          <strong className="font-semibold text-bone">
+            Scan it yourself before printing a stack.
           </strong>{" "}
-          Scan the code below with your own phone and confirm it opens the site.
           A printed code can never be corrected &mdash; it points at{" "}
-          <span className="break-all font-semibold">{SITE_URL}</span> forever.
+          <span className="break-all text-bone">{SITE_URL}</span> for as long as
+          the paper exists. Print one, scan the paper rather than the screen,
+          then run off the rest.
         </div>
 
         <div className="mt-6">
@@ -51,25 +57,24 @@ export default async function PosterPage() {
       </div>
 
       <article className="poster mx-auto w-full max-w-[520px] bg-white px-10 py-12 text-center text-black">
+        <Wordmark as="h2" tone="dark" className="block text-4xl" />
 
-        <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight">
-          {SHOP.name}
-        </h2>
-
-        <p className="mt-3 text-lg font-semibold uppercase tracking-[0.14em]">
+        <p className="mt-3 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-600">
           Book online
         </p>
 
         <div
-          className="poster__qr mx-auto mt-7"
+          className="poster__qr mx-auto mt-8"
           aria-label={`QR code linking to ${SITE_URL}`}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
 
-        <p className="mt-5 text-base font-semibold">
+        <p className="mt-6 text-base font-semibold">
           Point your camera at the code
         </p>
-        <p className="mt-1 text-sm text-neutral-600">No app needed</p>
+        <p className="mt-1 text-sm text-neutral-600">
+          No app, no account &mdash; pick a barber and a time.
+        </p>
 
         <div className="mt-8 border-t border-neutral-300 pt-6 text-sm">
           <p className="font-semibold">{SHOP.address.line1}</p>
@@ -80,7 +85,7 @@ export default async function PosterPage() {
         </div>
 
         <ul className="mt-6 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-neutral-700">
-          {HOURS.map((d) => (
+          {hours.map((d) => (
             <li key={d.day} className="flex justify-between">
               <span>{d.short}</span>
               <span className="tabular-nums">{formatHours(d)}</span>
