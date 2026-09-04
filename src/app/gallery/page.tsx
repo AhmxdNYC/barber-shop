@@ -7,16 +7,20 @@ export const metadata: Metadata = {
   description: "Recent work from the shop.",
 };
 
-/** Placeholder tiles until real photographs are uploaded. */
+/**
+ * Placeholder tiles until real photographs are uploaded. Labels are cut
+ * names only — no barber is credited, because crediting a cut to the wrong
+ * barber is worse than crediting nobody.
+ */
 const CUTS = [
-  { id: 1, label: "Skin fade", barber: "Eduardo" },
-  { id: 2, label: "Textured crop", barber: "Sami Haddad" },
-  { id: 3, label: "Beard sculpt", barber: "Andre Ruiz" },
-  { id: 4, label: "Classic side part", barber: "Tony Vega" },
-  { id: 5, label: "Mid taper", barber: "Eduardo" },
-  { id: 6, label: "Hot towel shave", barber: "Andre Ruiz" },
-  { id: 7, label: "Scissor crop", barber: "Sami Haddad" },
-  { id: 8, label: "Kids cut", barber: "Tony Vega" },
+  { id: 1, label: "Skin fade" },
+  { id: 2, label: "Taper fade" },
+  { id: 3, label: "Beard sculpt" },
+  { id: 4, label: "Classic side part" },
+  { id: 5, label: "Mid taper" },
+  { id: 6, label: "Hot towel shave" },
+  { id: 7, label: "Textured crop" },
+  { id: 8, label: "Kids cut" },
 ];
 
 const TONES = [
@@ -53,7 +57,7 @@ export default function GalleryPage() {
             />
             <figcaption className="absolute inset-x-0 bottom-0 p-4">
               <p className="font-display text-sm font-bold">{cut.label}</p>
-              <p className="text-xs text-bone-3">{cut.barber}</p>
+              <p className="text-xs text-bone-3">Photo to come</p>
             </figcaption>
           </figure>
         ))}

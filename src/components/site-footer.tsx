@@ -54,11 +54,13 @@ export function SiteFooter() {
             <li><Link href="/services" className="hover:text-bone">Services & prices</Link></li>
             <li><Link href="/barbers" className="hover:text-bone">Meet the barbers</Link></li>
             <li><Link href="/gallery" className="hover:text-bone">Gallery</Link></li>
-            <li>
-              <a href={SHOP.instagram} className="hover:text-bone" rel="noreferrer" target="_blank">
-                Instagram
-              </a>
-            </li>
+            {SHOP.instagram && (
+              <li>
+                <a href={SHOP.instagram} className="hover:text-bone" rel="noreferrer" target="_blank">
+                  Instagram
+                </a>
+              </li>
+            )}
             <li>
               <a href={SHOP.mapUrl} className="hover:text-bone" rel="noreferrer" target="_blank">
                 Get directions

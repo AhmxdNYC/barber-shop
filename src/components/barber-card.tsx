@@ -31,9 +31,15 @@ export function BarberCard({ barber, href }: Props) {
           loading="lazy"
         />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-surface to-transparent" />
-        <span className="absolute left-4 top-4 rounded-full border border-line-strong bg-ground/80 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-brass backdrop-blur-sm">
-          {barber.yearsExperience} yrs
-        </span>
+        {barber.isPlaceholder ? (
+          <span className="absolute left-4 top-4 rounded-full border border-line-strong bg-ground/80 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-bone-3 backdrop-blur-sm">
+            Placeholder
+          </span>
+        ) : (
+          <span className="absolute left-4 top-4 rounded-full border border-line-strong bg-ground/80 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-brass backdrop-blur-sm">
+            {barber.yearsExperience} yrs
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
@@ -47,8 +53,14 @@ export function BarberCard({ barber, href }: Props) {
 
         <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
           <span className="text-xs text-bone-3">
-            Next open
-            <span className="ml-1.5 text-bone-2">{barber.nextAvailable}</span>
+            {barber.isPlaceholder ? (
+              "Awaiting details"
+            ) : (
+              <>
+                Next open
+                <span className="ml-1.5 text-bone-2">{barber.nextAvailable}</span>
+              </>
+            )}
           </span>
           <span className="text-sm font-semibold text-bone transition-colors group-hover:text-accent">
             Book &rarr;

@@ -10,7 +10,7 @@ export const SHOP = {
   name: "Eduardo Barbershop",
   tagline: "One chair. No rush. Book the time, get the cut.",
   phone: "(914) 476-5347",
-  email: "hello@eduardobarbershop.com", // TODO: confirm — not listed publicly
+  email: "", // TODO: ask the shop. Empty hides it in the UI.
   address: {
     line1: "57 Park Hill Avenue",
     city: "Yonkers",
@@ -24,7 +24,7 @@ export const SHOP = {
    * resolves to the real listing and labels the pin.
    */
   mapQuery: "Eduardo Barber Shop, 57 Park Hill Ave, Yonkers, NY 10701",
-  instagram: "https://instagram.com", // TODO: real handle
+  instagram: "", // TODO: ask the shop for the handle. Empty hides it.
   mapUrl:
     "https://www.google.com/maps/place/Eduardo+Barber+Shop/@40.9290585,-73.8956612,17z/data=!4m6!3m5!1s0x89c2f26339d19203:0x24a11027237559b6!8m2!3d40.9291924!4d-73.8931055!16s%2Fg%2F1tghf20g",
   /** The shop already takes bookings here — see docs/BOOKING-PROVIDERS.md. */
@@ -55,7 +55,7 @@ export const SERVICES: Service[] = [
     name: "Haircut",
     description: "Standard cut, washed and styled. Scissors or clippers.",
     durationMinutes: 30,
-    priceCents: 3500,
+    priceCents: 4000,
     popular: true,
   },
   {
@@ -225,6 +225,8 @@ export type Barber = {
   services: string[];
   /** Placeholder until availability is wired to the backend. */
   nextAvailable: string;
+  /** True until this chair has a real name and photo from the shop. */
+  isPlaceholder?: boolean;
 };
 
 export const BARBERS: Barber[] = [
@@ -241,38 +243,40 @@ export const BARBERS: Barber[] = [
     nextAvailable: "Today, 2:30pm",
   },
   {
-    slug: "andre-ruiz",
-    name: "Andre Ruiz",
-    nickname: "Dre",
-    specialty: "Beard work & hot towel shaves",
-    bio: "Straight razor, hot towels, no shortcuts. Book him if the beard matters as much as the cut.",
-    yearsExperience: 9,
-    photo: "/barbers/andre-ruiz.svg",
-    instagram: "https://instagram.com",
+    slug: "chair-2",
+    name: "Second Chair",
+    nickname: "",
+    specialty: "Name and photo to come",
+    bio: "This is where the second barber's name, specialty and photo go. The layout is ready — it just needs the real details.",
+    yearsExperience: 0,
+    photo: "/barbers/chair-2.svg",
     services: [],
-    nextAvailable: "Today, 4:15pm",
+    nextAvailable: "—",
+    isPlaceholder: true,
   },
   {
-    slug: "sami-haddad",
-    name: "Sami Haddad",
-    nickname: "Sami",
-    specialty: "Scissor work & textured crops",
-    bio: "Trained on scissors first, clippers second. Best hands in the shop for grown-out hair and anything with texture.",
-    yearsExperience: 7,
-    photo: "/barbers/sami-haddad.svg",
+    slug: "chair-3",
+    name: "Third Chair",
+    nickname: "",
+    specialty: "Name and photo to come",
+    bio: "This is where the third barber's name, specialty and photo go. The layout is ready — it just needs the real details.",
+    yearsExperience: 0,
+    photo: "/barbers/chair-3.svg",
     services: [],
-    nextAvailable: "Tomorrow, 10:00am",
+    nextAvailable: "—",
+    isPlaceholder: true,
   },
   {
-    slug: "tony-vega",
-    name: "Tony Vega",
-    nickname: "Tone",
-    specialty: "Classic cuts & kids",
-    bio: "Thirty years behind a chair and infinite patience with a nervous six-year-old. Ask him about the old shop on Metropolitan.",
-    yearsExperience: 31,
-    photo: "/barbers/tony-vega.svg",
+    slug: "chair-4",
+    name: "Fourth Chair",
+    nickname: "",
+    specialty: "Name and photo to come",
+    bio: "This is where the fourth barber's name, specialty and photo go. The layout is ready — it just needs the real details.",
+    yearsExperience: 0,
+    photo: "/barbers/chair-4.svg",
     services: [],
-    nextAvailable: "Tomorrow, 11:30am",
+    nextAvailable: "—",
+    isPlaceholder: true,
   },
 ];
 
