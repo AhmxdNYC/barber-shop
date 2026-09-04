@@ -18,7 +18,6 @@ export default async function DashboardPage({
 }) {
   const { date: dateParam } = await searchParams;
   const date = dateParam ? new Date(`${dateParam}T12:00:00`) : new Date();
-  const iso = date.toISOString().slice(0, 10);
 
   const [appointments, stats, settings] = await Promise.all([
     appointmentsForDay(date),
