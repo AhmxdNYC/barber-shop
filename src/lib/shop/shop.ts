@@ -6,7 +6,7 @@
  * from here too, so the database and the marketing pages cannot disagree.
  */
 export const SHOP = {
-  name: "Eduardo Barbershop",
+  name: "Eduardo's",
   tagline: "One chair. No rush. Book the time, get the cut.",
   phone: "(914) 476-5347",
   email: "", // TODO: ask the shop. Empty hides it in the UI.
@@ -16,6 +16,16 @@ export const SHOP = {
     state: "NY",
     postalCode: "10701",
   },
+  /**
+   * The storefront.
+   *
+   * Worth its place because it is genuinely useful, not decorative: the shop
+   * is a green door in a red brick terrace with a barber pole beside it, and
+   * a first-time client walking down Park Hill Avenue is looking for exactly
+   * that. Replace with a real photograph at the same path.
+   */
+  storefrontPhoto: "/storefront.jpg",
+
   /** Exact pin from the shop's Google Maps listing. */
   coords: { lat: 40.9291924, lng: -73.8931055 },
   /**

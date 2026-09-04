@@ -37,6 +37,7 @@ Senior Cut · Hair Design.
 
 ## 4. Photos
 
+- [x] ~~Shopfront~~ — done, on the Visit section under the map
 - [ ] One portrait per barber — chest up, standing at their chair
 - [ ] 8+ photos of actual cuts for the gallery
 - [ ] One or two of the shop interior
@@ -51,6 +52,8 @@ disappear.
 - [ ] Does he want an email address shown at all?
 - [ ] Confirm the phone: **(914) 476-5347**
 - [ ] Confirm the address: **57 Park Hill Avenue, Yonkers, NY 10701**
+- [x] ~~Shop name~~ — the sign says **Eduardo's**, corrected from the listing's
+      "Eduardo Barber Shop"
 
 ## 6. The questions that decide what gets built next
 

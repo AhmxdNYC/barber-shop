@@ -212,11 +212,8 @@ export default async function HomePage() {
                 {SHOP.phone}
               </a>
             </div>
-          </div>
 
-          <div>
-            <ShopMap />
-            <h3 className="eyebrow mt-10 block">Hours</h3>
+            <h3 className="eyebrow mt-12 block">Hours</h3>
             <ul className="mt-5 divide-y divide-line border-y border-line">
               {hours.map((d, i) => {
                 const isToday = i === todayIndex();
@@ -246,6 +243,29 @@ export default async function HomePage() {
                 );
               })}
             </ul>
+          </div>
+
+          <div className="grid gap-5 self-start">
+            <ShopMap />
+
+            {/*
+              The storefront under the map, because together they answer the
+              two halves of "where is it": which street, and what to look for
+              once you are on it. Eduardo's is a green door in a red brick
+              terrace, and the pole beside it is the landmark.
+            */}
+            <figure className="overflow-hidden rounded-[3px] border border-line bg-surface">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={SHOP.storefrontPhoto}
+                alt={`The shopfront at ${SHOP.address.line1} — a green door with a barber pole beside it`}
+                className="w-full"
+                loading="lazy"
+              />
+              <figcaption className="border-t border-line px-4 py-3 text-sm text-bone-2">
+                Look for the green door and the pole.
+              </figcaption>
+            </figure>
           </div>
         </div>
       </section>
