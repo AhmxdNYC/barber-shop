@@ -47,9 +47,7 @@ export function BarberCard({ barber, href }: Props) {
           {barber.name}
         </h3>
         <p className="mt-1 text-sm text-accent">{barber.specialty}</p>
-        <p className="mt-3 flex-1 text-sm leading-relaxed text-bone-2">
-          {barber.bio}
-        </p>
+        <div className="flex-1" />
 
         <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
           <span className="text-xs text-bone-3">

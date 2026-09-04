@@ -20,6 +20,15 @@ export type TimeSlot = {
   /** Display label, e.g. "2:30pm". */
   label: string;
   available: boolean;
+  /**
+   * Who can take this time, when no barber was chosen.
+   *
+   * "First available" used to show bare times, so a client picked 2:30 with
+   * no idea whose chair they were getting — and a barbershop is a place
+   * people choose by person. Naming the barber turns the fallback option
+   * into a real choice.
+   */
+  barbers?: { slug: string; name: string }[];
 };
 
 export type AvailabilityQuery = {

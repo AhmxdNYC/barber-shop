@@ -18,7 +18,7 @@ const suite = hasDatabase ? describe : describe.skip;
 suite("live shop content", () => {
   afterEach(async () => {
     await prisma.service.updateMany({
-      where: { slug: "haircut" },
+      where: { slug: "adult-haircut" },
       data: { priceCents: 4000, isActive: true },
     });
   });
@@ -29,22 +29,22 @@ suite("live shop content", () => {
 
   it("shows the price currently in the database", async () => {
     await prisma.service.update({
-      where: { slug: "haircut" },
+      where: { slug: "adult-haircut" },
       data: { priceCents: 4500 },
     });
 
     const services = await liveServices();
-    expect(services.find((s) => s.slug === "haircut")?.priceCents).toBe(4500);
+    expect(services.find((s) => s.slug === "adult-haircut")?.priceCents).toBe(4500);
   });
 
   it("hides a service the barber has made unbookable", async () => {
     await prisma.service.update({
-      where: { slug: "haircut" },
+      where: { slug: "adult-haircut" },
       data: { isActive: false },
     });
 
     const services = await liveServices();
-    expect(services.some((s) => s.slug === "haircut")).toBe(false);
+    expect(services.some((s) => s.slug === "adult-haircut")).toBe(false);
   });
 
   it("publishes the shop's own opening hours", async () => {

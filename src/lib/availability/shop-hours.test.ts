@@ -42,7 +42,7 @@ suite("shop hours constrain availability", () => {
       data: { isClosed: true },
     });
 
-    expect(await slotsForBarber("eduardo", "haircut", DATE, NOW)).toEqual([]);
+    expect(await slotsForBarber("eduardo", "adult-haircut", DATE, NOW)).toEqual([]);
   });
 
   it("clips a barber's day to the shop's closing time", async () => {
@@ -51,7 +51,7 @@ suite("shop hours constrain availability", () => {
       data: { opensAtMinutes: 630, closesAtMinutes: 780 }, // shuts at 1pm
     });
 
-    const slots = await slotsForBarber("eduardo", "haircut", DATE, NOW);
+    const slots = await slotsForBarber("eduardo", "adult-haircut", DATE, NOW);
     expect(slots.length).toBeGreaterThan(0);
     // A 30-minute cut must be finished by 1pm.
     expect(Math.max(...slots.map((s) => s.startMinutes))).toBeLessThanOrEqual(750);
@@ -63,7 +63,7 @@ suite("shop hours constrain availability", () => {
       data: { opensAtMinutes: 840, closesAtMinutes: 1170 }, // opens at 2pm
     });
 
-    const slots = await slotsForBarber("eduardo", "haircut", DATE, NOW);
+    const slots = await slotsForBarber("eduardo", "adult-haircut", DATE, NOW);
     expect(slots.length).toBeGreaterThan(0);
     expect(Math.min(...slots.map((s) => s.startMinutes))).toBeGreaterThanOrEqual(840);
   });
@@ -74,6 +74,6 @@ suite("shop hours constrain availability", () => {
       data: { opensAtMinutes: 0, closesAtMinutes: 300 }, // shut before anyone starts
     });
 
-    expect(await slotsForBarber("eduardo", "haircut", DATE, NOW)).toEqual([]);
+    expect(await slotsForBarber("eduardo", "adult-haircut", DATE, NOW)).toEqual([]);
   });
 });

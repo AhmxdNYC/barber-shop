@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { slotsForAnyBarber, slotsForBarber } from "@/lib/availability/query";
 import { createAppointment } from "@/lib/booking/create-appointment";
+import { prisma } from "@/lib/db/client";
 import { formatMinutes } from "@/lib/shop";
 import type { BookingResult, TimeSlot } from "@/lib/booking/types";
 
@@ -38,11 +39,23 @@ export async function getAvailabilityAction(
     }));
   }
 
-  const merged = await slotsForAnyBarber(serviceSlug, date);
+  const [merged, barbers] = await Promise.all([
+    slotsForAnyBarber(serviceSlug, date),
+    prisma.barber.findMany({
+      where: { isActive: true },
+      select: { slug: true, name: true },
+    }),
+  ]);
+  const nameBySlug = new Map(barbers.map((b) => [b.slug, b.name]));
+
   return merged.map((s) => ({
     start: s.start.toISOString(),
     label: formatMinutes(s.startMinutes),
     available: true,
+    barbers: s.barberIds.map((slug) => ({
+      slug,
+      name: nameBySlug.get(slug) ?? slug,
+    })),
   }));
 }
 

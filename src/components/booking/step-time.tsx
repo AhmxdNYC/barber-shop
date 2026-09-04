@@ -70,20 +70,31 @@ export function StepTime({
             <p className="mb-3 text-sm text-bone-3">
               {openCount} open {openCount === 1 ? "time" : "times"}
             </p>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {slots.map((slot) => (
                 <button
                   key={slot.start}
                   type="button"
                   disabled={!slot.available}
                   onClick={() => onPickSlot(slot)}
-                  className={`h-11 rounded-[3px] border text-sm font-semibold tabular-nums transition-colors ${
+                  className={`rounded-[3px] border px-2 py-2 transition-colors ${
                     selected?.start === slot.start
                       ? "border-accent bg-accent text-bone"
                       : "border-line bg-surface hover:border-bone-3"
                   }`}
                 >
-                  {slot.label}
+                  <span className="block text-sm font-semibold tabular-nums">
+                    {slot.label}
+                  </span>
+                  {/* Only shown for "first available", where the barber is
+                      the thing the client does not yet know. */}
+                  {slot.barbers && slot.barbers.length > 0 && (
+                    <span className="mt-0.5 block truncate text-[0.7rem] opacity-80">
+                      {slot.barbers.length === 1
+                        ? slot.barbers[0].name
+                        : `${slot.barbers[0].name} +${slot.barbers.length - 1}`}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

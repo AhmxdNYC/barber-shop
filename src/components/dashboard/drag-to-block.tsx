@@ -17,6 +17,16 @@ export type DragRange = {
 /** Times snap to quarter hours; nobody blocks out 11:07. */
 export const SNAP_MINUTES = 15;
 
+/**
+ * What a tap means.
+ *
+ * Requiring a drag before anything happened made a tap feel broken — the
+ * calendar simply did nothing and gave no reason. A tap now proposes half an
+ * hour from that point, which the dialog lets you adjust, so the quick
+ * gesture works and the precise one still does too.
+ */
+export const TAP_BLOCK_MINUTES = 30;
+
 export function snap(minutes: number): number {
   return Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
 }
@@ -50,6 +60,8 @@ export function DragToBlockDialog({
   date: string;
   onClose: () => void;
 }) {
+  const [startMinutes, setStartMinutes] = useState(range.startMinutes);
+  const [endMinutes, setEndMinutes] = useState(range.endMinutes);
   const [state, action, pending] = useActionState<ActionState, FormData>(
     blockTimeFromCalendarAction,
     {},
@@ -94,16 +106,41 @@ export function DragToBlockDialog({
       >
         <input type="hidden" name="barberId" value={range.barberId} />
         <input type="hidden" name="date" value={date} />
-        <input type="hidden" name="startMinutes" value={range.startMinutes} />
-        <input type="hidden" name="endMinutes" value={range.endMinutes} />
+        <input type="hidden" name="startMinutes" value={startMinutes} />
+        <input type="hidden" name="endMinutes" value={endMinutes} />
 
         <h2 className="font-display text-xl font-bold">Block out this time?</h2>
-        <p className="mt-2 text-bone-2">
-          {range.barberName} &middot;{" "}
-          <span className="tabular-nums">
-            {formatRange(range.startMinutes, range.endMinutes)}
+        <p className="mt-2 text-bone-2">{range.barberName}</p>
+
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <label>
+            <span className="mb-1 block text-xs uppercase tracking-[0.1em] text-bone-3">
+              From
+            </span>
+            <input
+              type="time"
+              step={SNAP_MINUTES * 60}
+              value={toTimeValue(startMinutes)}
+              onChange={(e) => setStartMinutes(fromTimeValue(e.target.value, startMinutes))}
+              className={TIME_INPUT}
+            />
+          </label>
+          <label>
+            <span className="mb-1 block text-xs uppercase tracking-[0.1em] text-bone-3">
+              Until
+            </span>
+            <input
+              type="time"
+              step={SNAP_MINUTES * 60}
+              value={toTimeValue(endMinutes)}
+              onChange={(e) => setEndMinutes(fromTimeValue(e.target.value, endMinutes))}
+              className={TIME_INPUT}
+            />
+          </label>
+          <span className="pb-2 text-sm tabular-nums text-bone-3">
+            {lengthInWords(endMinutes - startMinutes)}
           </span>
-        </p>
+        </div>
 
         <label className="mt-5 block">
           <span className="mb-1 block text-xs uppercase tracking-[0.1em] text-bone-3">
@@ -128,7 +165,7 @@ export function DragToBlockDialog({
         </p>
 
         <div className="mt-5 flex gap-3">
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending || endMinutes <= startMinutes}>
             {pending ? "Blocking…" : "Block it out"}
           </Button>
           <Button variant="ghost" onClick={onClose}>
@@ -206,14 +243,39 @@ export function useColumnDrag({
   function onPointerUp() {
     if (!drag) return;
     const start = Math.min(drag.anchor, drag.current);
-    const end = Math.max(drag.anchor, drag.current);
+    const dragged = Math.max(drag.anchor, drag.current) - start;
     setDrag(null);
-    // A tap is not a drag. Below one slot it was almost certainly a scroll.
-    if (end - start >= SNAP_MINUTES) onComplete(drag.barberId, start, end);
+    // A tap proposes a default length rather than doing nothing, which read
+    // as the calendar being unresponsive.
+    const end = dragged >= SNAP_MINUTES ? start + dragged : start + TAP_BLOCK_MINUTES;
+    onComplete(drag.barberId, start, end);
   }
 
   return {
     drag,
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: () => setDrag(null) },
   };
+}
+
+
+const TIME_INPUT =
+  "rounded-[3px] border border-line bg-surface-2 px-3 py-2 text-sm tabular-nums text-bone focus:border-bone-3 focus:outline-none";
+
+function toTimeValue(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+function fromTimeValue(value: string, fallback: number): number {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return fallback;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function lengthInWords(minutes: number): string {
+  if (minutes <= 0) return "";
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  if (rest === 0) return hours === 1 ? "1 hour" : `${hours} hours`;
+  return `${hours}h ${rest}m`;
 }

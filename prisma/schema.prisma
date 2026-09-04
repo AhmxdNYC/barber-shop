@@ -128,7 +128,8 @@ model Barber {
   name            String
   nickname        String?
   specialty       String
-  bio             String
+  /// Unused in the UI — a paragraph nobody reads before a haircut.
+  bio             String?
   yearsExperience Int     @default(0)
   photoUrl        String?
   instagramUrl    String?

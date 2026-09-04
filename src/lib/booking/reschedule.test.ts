@@ -25,11 +25,11 @@ suite("rescheduleAppointment", () => {
   }
 
   async function bookFirst() {
-    const slots = await slotsForBarber("eduardo", "haircut", date());
+    const slots = await slotsForBarber("eduardo", "adult-haircut", date());
     if (slots.length < 6) return null;
     const result = await createAppointment({
       barberSlug: "eduardo",
-      serviceSlug: "haircut",
+      serviceSlug: "adult-haircut",
       start: slots[0].start.toISOString(),
       name: "Reschedule Test",
       email: EMAIL,
@@ -75,7 +75,7 @@ suite("rescheduleAppointment", () => {
     const original = booked.slots[0].start;
     await rescheduleAppointment(booked.saved.id, booked.slots[5].start);
 
-    const now = await slotsForBarber("eduardo", "haircut", date());
+    const now = await slotsForBarber("eduardo", "adult-haircut", date());
     expect(now.some((s) => s.start.getTime() === original.getTime())).toBe(true);
   });
 

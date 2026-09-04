@@ -399,6 +399,33 @@ an accidental swipe is a much worse failure than any convenience it buys, and
 moving one already has a safer path: tap it, pick a time, and the client is
 emailed. A drag has no natural place to tell them.
 
+### Barber bios were removed; the specialty stayed
+
+Nobody reads a paragraph about a barber before booking a haircut. The
+specialty line — "Fades & tapers" — is what a client actually decides on, and
+years of experience covers credibility. A bio is four pieces of writing the
+shop has to produce, that then sit unread, and that look obviously fake when
+they are placeholders.
+
+The column is kept but optional, because dropping it would be a migration
+for no gain and it costs nothing empty. It is simply not asked for and not
+shown.
+
+### A tap on the calendar proposes a block; it does not require a drag
+
+The first version only acted on a drag of fifteen minutes or more, so a tap
+did nothing at all and gave no reason — which reads as the calendar being
+broken rather than as a deliberate threshold. A tap now proposes half an
+hour, and the confirmation dialog lets both start and end be adjusted, so the
+quick gesture works and the precise one still does.
+
+### "First available" names the barber
+
+The fallback option used to show bare times, so a client picked 2:30 with no
+idea whose chair they were getting. In a barbershop that is the wrong thing
+to hide — people choose the place for a person. Each time now carries who is
+free, which turns the fallback from a compromise into a real choice.
+
 ### Revenue counts only completed work
 
 Booked revenue would flatter every figure on the page. The first time a

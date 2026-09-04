@@ -74,6 +74,14 @@ async function main() {
     });
   }
 
+  // Anything no longer on the menu stops being bookable. Deactivated rather
+  // than deleted, because appointments reference services and deleting one
+  // would take the record of that work with it.
+  await prisma.service.updateMany({
+    where: { slug: { notIn: SERVICES.map((s) => s.slug) } },
+    data: { isActive: false },
+  });
+
   for (const [i, b] of BARBERS.entries()) {
     const barber = await prisma.barber.upsert({
       where: { slug: b.slug },
@@ -82,7 +90,6 @@ async function main() {
         name: b.name,
         nickname: b.nickname || null,
         specialty: b.specialty,
-        bio: b.bio,
         yearsExperience: b.yearsExperience,
         photoUrl: b.photo,
         sortOrder: i,

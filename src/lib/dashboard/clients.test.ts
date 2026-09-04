@@ -38,7 +38,7 @@ suite("client book", () => {
     });
     const [barber, service] = await Promise.all([
       prisma.barber.findUniqueOrThrow({ where: { slug: "eduardo" } }),
-      prisma.service.findUniqueOrThrow({ where: { slug: "haircut" } }),
+      prisma.service.findUniqueOrThrow({ where: { slug: "adult-haircut" } }),
     ]);
 
     let offset = lastAgo;
@@ -74,7 +74,7 @@ suite("client book", () => {
     const book = await clientBook();
     const entry = book.find((c) => c.email === EMAIL);
     expect(entry?.averageGapDays).toBe(14);
-    expect(entry?.usualService).toBe("Haircut");
+    expect(entry?.usualService).toBe("Adult Haircut");
     expect(entry?.usualBarber).toBe("Eduardo");
   });
 
@@ -95,7 +95,7 @@ suite("client book", () => {
     const client = await clientWithHistory([14, 14, 14], 30);
     const [barber, service] = await Promise.all([
       prisma.barber.findUniqueOrThrow({ where: { slug: "eduardo" } }),
-      prisma.service.findUniqueOrThrow({ where: { slug: "haircut" } }),
+      prisma.service.findUniqueOrThrow({ where: { slug: "adult-haircut" } }),
     ]);
     const soon = new Date(Date.now() + 2 * DAY);
     await prisma.appointment.create({
@@ -136,7 +136,7 @@ suite("revenue report", () => {
   async function appointment(status: string, agoDays: number, priceCents = 4000) {
     const [barber, service] = await Promise.all([
       prisma.barber.findUniqueOrThrow({ where: { slug: "eduardo" } }),
-      prisma.service.findUniqueOrThrow({ where: { slug: "haircut" } }),
+      prisma.service.findUniqueOrThrow({ where: { slug: "adult-haircut" } }),
     ]);
     const client = await prisma.client.upsert({
       where: { email: EMAIL },

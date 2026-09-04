@@ -3,7 +3,7 @@ import { bookingCancelled, bookingConfirmed, bookingReminder } from "./templates
 
 const details = {
   clientName: "Marcus",
-  serviceName: "Skin Fade",
+  serviceName: "Adult Haircut",
   barberName: "Eduardo",
   startsAt: new Date("2026-09-15T18:30:00Z"), // 2:30pm New York
   priceCents: 4500,
@@ -25,7 +25,7 @@ describe("booking confirmation", () => {
 
   it("names the service, barber and price", () => {
     const { body, subject } = bookingConfirmed(details);
-    expect(subject).toContain("Skin Fade");
+    expect(subject).toContain("Adult Haircut");
     expect(body).toContain("Eduardo");
     expect(body).toContain("$45");
   });
@@ -49,7 +49,7 @@ describe("cancellation", () => {
   it("says what was cancelled and invites them back", () => {
     const { subject, body } = bookingCancelled(details);
     expect(subject).toContain("Cancelled");
-    expect(body).toContain("Skin Fade");
+    expect(body).toContain("Adult Haircut");
     expect(body.toLowerCase()).toContain("book another time");
   });
 });

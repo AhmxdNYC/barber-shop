@@ -23,11 +23,11 @@ suite("lost link recovery", () => {
 
   async function book() {
     const date = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
-    const slots = await slotsForBarber("eduardo", "haircut", date);
+    const slots = await slotsForBarber("eduardo", "adult-haircut", date);
     if (slots.length === 0) return null;
     return createAppointment({
       barberSlug: "eduardo",
-      serviceSlug: "haircut",
+      serviceSlug: "adult-haircut",
       start: slots[0].start.toISOString(),
       name: "Recover Test",
       email: EMAIL,

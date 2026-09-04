@@ -22,13 +22,13 @@ suite("createAppointment", () => {
   });
 
   async function firstOpenSlot() {
-    const slots = await slotsForBarber("eduardo", "haircut", DATE);
+    const slots = await slotsForBarber("eduardo", "adult-haircut", DATE);
     return slots[0];
   }
 
   const booking = (start: string, email = "one@booking-test.com") => ({
     barberSlug: "eduardo",
-    serviceSlug: "haircut",
+    serviceSlug: "adult-haircut",
     start,
     name: "Test Client",
     email,
@@ -51,7 +51,7 @@ suite("createAppointment", () => {
   it("snapshots the price so later menu changes cannot rewrite history", async () => {
     const slot = await firstOpenSlot();
     await createAppointment(booking(slot.start.toISOString()));
-    const service = await prisma.service.findUnique({ where: { slug: "haircut" } });
+    const service = await prisma.service.findUnique({ where: { slug: "adult-haircut" } });
     const saved = await prisma.appointment.findFirst();
     expect(saved?.priceCents).toBe(service?.priceCents);
   });
@@ -62,7 +62,7 @@ suite("createAppointment", () => {
     const [saved, settings, service] = await Promise.all([
       prisma.appointment.findFirst(),
       prisma.shopSettings.findUnique({ where: { id: 1 } }),
-      prisma.service.findUnique({ where: { slug: "haircut" } }),
+      prisma.service.findUnique({ where: { slug: "adult-haircut" } }),
     ]);
     const heldMinutes =
       (saved!.endsAt.getTime() - saved!.startsAt.getTime()) / 60_000;
@@ -72,7 +72,7 @@ suite("createAppointment", () => {
   it("removes the slot from availability once booked", async () => {
     const slot = await firstOpenSlot();
     await createAppointment(booking(slot.start.toISOString()));
-    const after = await slotsForBarber("eduardo", "haircut", DATE);
+    const after = await slotsForBarber("eduardo", "adult-haircut", DATE);
     expect(after.some((s) => s.start.getTime() === slot.start.getTime())).toBe(false);
   });
 
@@ -107,9 +107,14 @@ suite("createAppointment", () => {
   });
 
   it("reuses the client row when the same email books again", async () => {
-    const slots = await slotsForBarber("eduardo", "haircut", DATE);
+    const slots = await slotsForBarber("eduardo", "adult-haircut", DATE);
     await createAppointment(booking(slots[0].start.toISOString()));
-    await createAppointment(booking(slots[3].start.toISOString()));
+
+    // Re-query rather than picking another index from the original list: a
+    // 45-minute cut plus its buffer spans several slots, so the next few
+    // entries now overlap the booking just made.
+    const remaining = await slotsForBarber("eduardo", "adult-haircut", DATE);
+    await createAppointment(booking(remaining[0].start.toISOString()));
     const clients = await prisma.client.findMany({
       where: { email: "one@booking-test.com" },
     });

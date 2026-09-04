@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Barber" ALTER COLUMN "bio" DROP NOT NULL;

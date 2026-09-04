@@ -37,11 +37,11 @@ suite("booking end to end", () => {
 
   async function bookFirstSlot() {
     const date = targetDate();
-    const slots = await slotsForBarber("eduardo", "skin-fade", date);
+    const slots = await slotsForBarber("eduardo", "adult-haircut", date);
     if (slots.length === 0) return null;
     const result = await createAppointment({
       barberSlug: "eduardo",
-      serviceSlug: "skin-fade",
+      serviceSlug: "adult-haircut",
       start: slots[0].start.toISOString(),
       name: "Marcus Webb",
       email: TEST_EMAIL,
@@ -59,7 +59,7 @@ suite("booking end to end", () => {
     // The booked start time is gone, and so is every other start whose
     // service would have run into it. One 45-minute cut plus its buffer
     // spans several 15-minute candidates, so this is more than one slot.
-    const after = await slotsForBarber("eduardo", "skin-fade", booked.date);
+    const after = await slotsForBarber("eduardo", "adult-haircut", booked.date);
     expect(after.length).toBeLessThan(booked.before);
     expect(
       after.some((s) => s.start.getTime() === booked.slot.start.getTime()),
@@ -79,7 +79,7 @@ suite("booking end to end", () => {
     const day = await appointmentsForDay(booked.slot.start);
     expect(day).toHaveLength(1);
     expect(day[0].contactName).toBe("Marcus Webb");
-    expect(day[0].service.name).toBe("Skin Fade");
+    expect(day[0].service.name).toBe("Adult Haircut");
     expect(day[0].clientNotes).toContain("short on the sides");
     expect(day[0].status).toBe("CONFIRMED");
   });
@@ -118,7 +118,7 @@ suite("booking end to end", () => {
 
     await prisma.appointment.updateMany({ data: { status: "CANCELLED" } });
 
-    const after = await slotsForBarber("eduardo", "skin-fade", booked.date);
+    const after = await slotsForBarber("eduardo", "adult-haircut", booked.date);
     expect(after.length).toBe(booked.before);
   });
 });

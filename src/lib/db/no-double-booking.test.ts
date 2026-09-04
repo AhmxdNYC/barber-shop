@@ -29,7 +29,7 @@ suite("no_overlapping_appointments", () => {
     [eduardo, secondChair, serviceId, { id: clientId }] = await Promise.all([
       barberIdBySlug("eduardo"),
       barberIdBySlug("chair-2"),
-      serviceIdBySlug("haircut"),
+      serviceIdBySlug("adult-haircut"),
       ensureTestClient(),
     ]);
   });
