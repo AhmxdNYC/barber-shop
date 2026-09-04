@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/*
+  Fade & Co. — a single, committed dark identity.
+  Warm near-black ground, bone type, barber-pole red used sparingly,
+  brass reserved for small marks of craft.
+*/
+@theme {
+  --color-ground: #0e0d0b;
+  --color-surface: #16140f;
+  --color-surface-2: #1f1c16;
+  --color-line: #2e2a22;
+  --color-line-strong: #433c31;
+
+  --color-bone: #f3efe7;
+  --color-bone-2: #aba396;
+  --color-bone-3: #746d61;
+
+  --color-accent: #cc4b3c;
+  --color-accent-bright: #e05f4f;
+  --color-accent-dim: #3a1b16;
+
+  --color-brass: #c9a25e;
+  --color-brass-dim: #33291a;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 3px;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-ground);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-bone);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 2px;
+  }
+
+  /* Headings carry the display face everywhere. */
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  /* Small uppercase mono-ish label used above section headings. */
+  .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  /* The three-stripe barber pole mark. */
+  .pole-stripe {
+    display: flex;
+    gap: 4px;
+  }
+  .pole-stripe > i {
+    display: block;
+    height: 5px;
+    width: 26px;
+    border-radius: 3px;
+    background: var(--color-line-strong);
+  }
+  .pole-stripe > i:first-child {
+    width: 52px;
+    background: var(--color-accent);
+  }
+  .pole-stripe > i:nth-child(2) {
+    background: var(--color-brass);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

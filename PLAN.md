@@ -10,16 +10,36 @@ his day out of a dashboard.
 
 | Decision | Choice | Why |
 |---|---|---|
-| Shop scope | Single barber | One chair, one calendar. No barber-picker step. |
-| Stack | Next.js 15 (App Router) + Prisma + Postgres | One deploy, real server-side logic to talk about. |
+| Shop scope | **Multi-barber (4 chairs)** | Revised — the shop has four barbers and clients pick by name and photo. |
+| Stack | Next.js 16 (App Router) + Prisma + Postgres | One deploy, real server-side logic to talk about. |
 | Database | Neon Postgres (serverless, free tier) | Branching DBs, sleeps when idle. |
 | Auth | Auth.js v5 — email magic link + Google | No password storage, no reset flow to build. |
 | Payments | Stripe Checkout, deposit only | Card at booking, balance paid at the chair. |
 | Notifications | Resend email now, Twilio SMS behind a flag | Email is free and instant; SMS needs A2P registration. |
 | Hosting | Vercel | Free tier, cron jobs, preview deploys. |
 
-Schema stays shop-scoped rather than barber-scoped, so adding a `barberId`
-later is an additive migration rather than a rewrite.
+**Revision (2026-09-04).** This started as a single-barber build; the shop is
+Eduardo Barbershop and has four chairs, with clients choosing a specific barber
+by name and photo. The additive migration anticipated here is now part of the
+baseline schema: a `Barber` model, and `barberId` on `Appointment`,
+`WorkingHours`, `DateOverride`, `RecurringBlock` and `TimeOff`.
+
+The one change that is easy to get wrong is the double-booking constraint. It
+must be scoped per barber, or two barbers can never hold appointments at the
+same time:
+
+```sql
+ALTER TABLE "Appointment"
+  ADD CONSTRAINT no_overlapping_appointments
+  EXCLUDE USING gist (
+    "barberId" WITH =,                                  -- per chair
+    tstzrange("startsAt", "endsAt") WITH &&
+  )
+  WHERE (status IN ('PENDING_PAYMENT', 'CONFIRMED', 'COMPLETED'));
+```
+
+Availability becomes per barber, plus a "first available" mode that unions
+every barber's open slots.
 
 ---
 
@@ -461,7 +481,7 @@ handlers, since those are called by machines rather than the UI.
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 15, App Router, React 19, TypeScript |
+| Framework | Next.js 16, App Router, React 19, TypeScript |
 | Styling | Tailwind CSS v4 + shadcn/ui |
 | ORM | Prisma 6 |
 | Database | Neon Postgres |

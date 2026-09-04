@@ -1,14 +1,51 @@
-# Barber Shop Booking App
+# Eduardo Barbershop
 
-Online booking for a one-chair barbershop. Clients book and pay a deposit;
-the barber runs his day from a dashboard.
+Online booking for a four-chair barbershop. Clients pick their barber by name
+and face, choose a service, and hold a slot with a deposit.
 
-Built as a portfolio project, intended for real use by a working barber.
+Built as a portfolio project, intended for real use by a working shop.
 
 ## Status
 
-Planning. See [PLAN.md](PLAN.md) for the full feature set, data model,
-architecture, and build phases.
+**Frontend complete.** The public site and the full booking flow are built and
+running against a mock provider — clickable end to end, nothing persisted.
+
+See [PLAN.md](PLAN.md) for the feature set, data model and build phases, and
+[docs/BOOKING-PROVIDERS.md](docs/BOOKING-PROVIDERS.md) for how to make booking
+real and what each route costs.
+
+## Run it
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+```
+
+## Pages
+
+| Route | What it is |
+|---|---|
+| `/` | Landing — hero, the four chairs, price menu, hours, location |
+| `/barbers` | Barber roster with portraits and specialties |
+| `/services` | Full menu with prices and durations |
+| `/gallery` | Cut gallery (placeholder tiles until real photos) |
+| `/book` | Four-step booking: barber → service → time → details |
+
+`/book` accepts `?barber=<slug>&service=<slug>` and skips straight to time
+selection, so every card on the site deep-links into a pre-filled booking.
+
+## Swapping in real content
+
+All shop-specific content is in one file, [`src/lib/shop.ts`](src/lib/shop.ts):
+name, address, hours, the service menu, and the barber roster. Prices and
+barbers other than Eduardo are placeholders. Real photographs replace the
+generated SVGs at `public/barbers/<slug>.svg`.
+
+## Making booking real
+
+The flow talks to a `BookingProvider` interface, not a database. Today that
+resolves to a mock. Switching to Square, Booksy, Fresha or our own backend
+means filling in one adapter and setting an env var — the UI never changes.
 
 ## Stack
 
