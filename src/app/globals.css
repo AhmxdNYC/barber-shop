@@ -263,13 +263,17 @@
 
 
 /* ── hero photograph ──────────────────────────────────────────────
-   A photograph behind the name has one job and one hazard: it has to
-   set the room without ever competing with the words on top of it.
+   A photograph behind type has to set the room without competing with
+   the words on top of it. The first attempt solved the second half and
+   forgot the first: at 42% brightness under a 78% veil the shop was
+   effectively invisible, which is a very safe way of wasting a
+   photograph.
 
-   So it is pushed a long way down — desaturated, dimmed, and covered
-   by a gradient that goes to solid black at the bottom edge. The
-   wordmark sits on near-black either way, and the section below has
-   nothing to butt against. */
+   It is now bright enough to read as a room. Legibility is bought
+   where it is actually needed instead — a veil down the left, where
+   the wordmark sits, and a fade to solid black at the bottom so the
+   next section has nothing to butt against. The middle of the frame,
+   which carries no text, is left nearly alone. */
 .hero-photo {
   position: absolute;
   inset: 0;
@@ -280,7 +284,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.22) brightness(0.42) contrast(1.08);
+  filter: saturate(0.5) brightness(0.72) contrast(1.02);
 }
 
 .hero-photo::after {
@@ -288,16 +292,19 @@
   position: absolute;
   inset: 0;
   background:
+    /* Only the bottom fifth goes dark, so the room stays visible. */
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--color-ground) 72%, transparent) 0%,
-      color-mix(in srgb, var(--color-ground) 78%, transparent) 45%,
+      color-mix(in srgb, var(--color-ground) 35%, transparent) 0%,
+      color-mix(in srgb, var(--color-ground) 25%, transparent) 45%,
+      color-mix(in srgb, var(--color-ground) 70%, transparent) 82%,
       var(--color-ground) 100%
     ),
-    /* Keeps the left edge dark where the wordmark actually sits. */
+    /* Where the wordmark and the buttons actually are. */
     linear-gradient(
       to right,
-      color-mix(in srgb, var(--color-ground) 60%, transparent) 0%,
-      transparent 60%
+      color-mix(in srgb, var(--color-ground) 78%, transparent) 0%,
+      color-mix(in srgb, var(--color-ground) 45%, transparent) 38%,
+      transparent 70%
     );
 }
