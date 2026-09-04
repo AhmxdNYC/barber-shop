@@ -124,8 +124,12 @@
    The filter is constant. An earlier version revealed true colour on
    hover, which flickered every time the pointer crossed the panel. */
 .map-frame iframe {
-  filter: invert(0.91) hue-rotate(180deg) brightness(0.92) contrast(0.94)
-    saturate(0.62) sepia(0.12);
+  /* invert() flips the light map dark; hue-rotate puts the hues back so
+     water still reads as water. Saturation is pulled well down and the
+     sepia is gone — a warm tint was matching the old palette and reads as
+     a stain against neutral greys. */
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.88) contrast(0.92)
+    saturate(0.28);
 }
 
 .map-frame__tint {
@@ -134,10 +138,10 @@
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    color-mix(in srgb, var(--color-ground) 45%, transparent) 0%,
-    transparent 24%,
-    transparent 76%,
-    color-mix(in srgb, var(--color-ground) 32%, transparent) 100%
+    color-mix(in srgb, var(--color-ground) 55%, transparent) 0%,
+    transparent 26%,
+    transparent 74%,
+    color-mix(in srgb, var(--color-ground) 45%, transparent) 100%
   );
 }
 

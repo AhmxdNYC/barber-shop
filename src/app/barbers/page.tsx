@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BARBERS } from "@/lib/shop";
+import { barbersWithPhotos, galleryPhotos } from "@/lib/shop/gallery";
 import { BarberCard } from "@/components/barber-card";
 
 export const metadata: Metadata = {
@@ -8,7 +10,13 @@ export const metadata: Metadata = {
     "Meet the barbers and book the chair you want. Every barber keeps their own calendar.",
 };
 
-export default function BarbersPage() {
+export const revalidate = 3600;
+
+export default async function BarbersPage() {
+  const photos = await galleryPhotos();
+  // Only offer a link to someone's work when there is work to look at.
+  const withPhotos = new Set(barbersWithPhotos(photos).map((b) => b.slug));
+
   return (
     <div className="mx-auto max-w-6xl px-5 py-16">
       <header className="max-w-2xl">
@@ -24,11 +32,17 @@ export default function BarbersPage() {
 
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {BARBERS.map((barber) => (
-          <BarberCard
-            key={barber.slug}
-            barber={barber}
-            href={`/book?barber=${barber.slug}`}
-          />
+          <div key={barber.slug} className="flex flex-col gap-2">
+            <BarberCard barber={barber} href={`/book?barber=${barber.slug}`} />
+            {withPhotos.has(barber.slug) && (
+              <Link
+                href={`/gallery?barber=${barber.slug}`}
+                className="rounded-[3px] border border-line px-4 py-2.5 text-center text-sm font-semibold text-bone-2 transition-colors hover:border-line-strong hover:text-bone"
+              >
+                See their work
+              </Link>
+            )}
+          </div>
         ))}
       </div>
 

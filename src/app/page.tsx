@@ -179,92 +179,92 @@ export default async function HomePage() {
 
       {/* ── visit ────────────────────────────────────────────── */}
       <section id="visit" className="mx-auto max-w-6xl px-5 py-20">
-        <div className="grid gap-12 lg:grid-cols-2">
-          <div>
-            <span className="eyebrow">Visit</span>
-            <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Where to find us
-            </h2>
-            <address className="mt-6 space-y-1 text-lg not-italic text-bone-2">
-              <p className="text-bone">{SHOP.address.line1}</p>
-              <p>
-                {SHOP.address.city}, {SHOP.address.state}{" "}
-                {SHOP.address.postalCode}
-              </p>
-            </address>
+        <header className="max-w-2xl">
+          <span className="eyebrow">Visit</span>
+          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Where to find us
+          </h2>
+          <address className="mt-6 space-y-1 text-lg not-italic text-bone-2">
+            <p className="text-bone">{SHOP.address.line1}</p>
+            <p>
+              {SHOP.address.city}, {SHOP.address.state} {SHOP.address.postalCode}
+            </p>
+          </address>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href={SHOP.mapUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-[3px] border border-line-strong px-5 py-2.5 text-sm font-semibold transition-colors hover:border-bone-3"
-              >
-                Directions
-              </a>
-              <a
-                href={`tel:${SHOP.phone.replace(/\D/g, "")}`}
-                className="rounded-[3px] border border-line-strong px-5 py-2.5 text-sm font-semibold transition-colors hover:border-bone-3"
-              >
-                {SHOP.phone}
-              </a>
-            </div>
-
-            <h3 className="eyebrow mt-12 block">Shop hours</h3>
-            <ul className="mt-5 divide-y divide-line border-y border-line">
-              {hours.map((d, i) => {
-                const isToday = i === todayIndex();
-                return (
-                  <li
-                    key={d.day}
-                    className={`flex items-center justify-between py-3.5 ${
-                      isToday ? "text-bone" : "text-bone-2"
-                    }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      {d.day}
-                      {isToday && (
-                        <span className="rounded-full bg-accent-dim px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-accent">
-                          Today
-                        </span>
-                      )}
-                    </span>
-                    <span
-                      className={
-                        d.opens === null ? "text-bone-3" : "tabular-nums"
-                      }
-                    >
-                      {formatHours(d)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href={SHOP.mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-[3px] border border-line-strong px-5 py-2.5 text-sm font-semibold transition-colors hover:border-bone-3"
+            >
+              Directions
+            </a>
+            <a
+              href={`tel:${SHOP.phone.replace(/\D/g, "")}`}
+              className="rounded-[3px] border border-line-strong px-5 py-2.5 text-sm font-semibold transition-colors hover:border-bone-3"
+            >
+              {SHOP.phone}
+            </a>
           </div>
+        </header>
 
-          <div className="grid gap-5 self-start">
-            <ShopMap />
+        {/*
+          Map and storefront side by side at the same aspect ratio.
+          Stacking them in one column left the other column short, so the
+          address ran out and a block of dead space sat beside the
+          photograph. Paired, they answer the two halves of "where is it" —
+          which street, and what to look for once you are on it — and
+          neither column outruns the other.
+        */}
+        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+          <ShopMap />
 
-            {/*
-              The storefront under the map, because together they answer the
-              two halves of "where is it": which street, and what to look for
-              once you are on it. Eduardo's is a green door in a red brick
-              terrace, and the pole beside it is the landmark.
-            */}
-            <figure className="overflow-hidden rounded-[3px] border border-line bg-surface">
+          <figure className="overflow-hidden rounded-[3px] border border-line bg-surface">
+            <div className="aspect-4/3 w-full overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={SHOP.storefrontPhoto}
                 alt={`The shopfront at ${SHOP.address.line1} — a green door with a barber pole beside it`}
-                className="w-full"
+                className="h-full w-full object-cover"
                 loading="lazy"
               />
-              <figcaption className="border-t border-line px-4 py-3 text-sm text-bone-2">
-                Look for the green door and the pole.
-              </figcaption>
-            </figure>
-          </div>
+            </div>
+            <figcaption className="border-t border-line px-4 py-3 text-sm text-bone-2">
+              Look for the green door and the pole.
+            </figcaption>
+          </figure>
         </div>
+
+        {/* Hours as a strip, so the week reads across rather than leaving a
+            tall list down one side. */}
+        <h3 className="eyebrow mt-12 block">Shop hours</h3>
+        <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          {hours.map((d, i) => {
+            const isToday = i === todayIndex();
+            return (
+              <li
+                key={d.day}
+                className={`rounded-[3px] border px-3 py-3 ${
+                  isToday
+                    ? "border-accent bg-accent-dim"
+                    : "border-line bg-surface"
+                }`}
+              >
+                <span className="block text-xs uppercase tracking-[0.1em] text-bone-3">
+                  {d.short}
+                </span>
+                <span
+                  className={`mt-1 block text-sm ${
+                    d.opens === null ? "text-bone-3" : "tabular-nums text-bone"
+                  }`}
+                >
+                  {formatHours(d)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </section>
     </>
   );

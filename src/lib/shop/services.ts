@@ -16,7 +16,7 @@ export const SERVICES: Service[] = [
   {
     slug: "adult-haircut",
     name: "Adult Haircut",
-    description: "Cut, washed and styled.",
+    description: "Cut and styled.",
     durationMinutes: 45,
     priceCents: 4500,
     popular: true,
