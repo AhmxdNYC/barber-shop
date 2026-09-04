@@ -16,10 +16,23 @@ import { prisma } from "@/lib/db/client";
 
 const TOKEN_BYTES = 32;
 const EXPIRY_MINUTES = 15;
+/**
+ * Device-link codes live for two minutes, not fifteen.
+ *
+ * An emailed link sits in an inbox and needs time to be found. A code shown
+ * on screen is scanned within seconds, so anything longer is just a window
+ * in which someone can photograph it over his shoulder.
+ */
+const DEVICE_LINK_EXPIRY_MINUTES = 2;
 const MAX_REQUESTS = 5;
 const RATE_WINDOW_MINUTES = 15;
 
-export const MAGIC_LINK_LIMITS = { EXPIRY_MINUTES, MAX_REQUESTS, RATE_WINDOW_MINUTES };
+export const MAGIC_LINK_LIMITS = {
+  EXPIRY_MINUTES,
+  DEVICE_LINK_EXPIRY_MINUTES,
+  MAX_REQUESTS,
+  RATE_WINDOW_MINUTES,
+};
 
 function hash(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -45,6 +58,7 @@ export async function isMagicLinkRateLimited(email: string): Promise<boolean> {
  */
 export async function issueMagicLink(
   email: string,
+  expiryMinutes: number = EXPIRY_MINUTES,
 ): Promise<{ token: string; name: string } | null> {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || (user.role !== "BARBER" && user.role !== "OWNER")) return null;
@@ -55,11 +69,30 @@ export async function issueMagicLink(
     data: {
       identifier: email,
       token: hash(token),
-      expires: new Date(Date.now() + EXPIRY_MINUTES * 60_000),
+      expires: new Date(Date.now() + expiryMinutes * 60_000),
     },
   });
 
   return { token, name: user.name ?? "Barber" };
+}
+
+/**
+ * A code for signing in a second device, shown on an already-signed-in one.
+ *
+ * The same pattern as linking a desktop messaging client: the existing
+ * session vouches for the new device. It is emphatically *not* the shop's
+ * public QR code — that one is printed on the window and scanned by every
+ * client who walks past.
+ */
+export async function issueDeviceLink(
+  email: string,
+): Promise<{ token: string; expiresInSeconds: number } | null> {
+  const issued = await issueMagicLink(email, DEVICE_LINK_EXPIRY_MINUTES);
+  if (!issued) return null;
+  return {
+    token: issued.token,
+    expiresInSeconds: DEVICE_LINK_EXPIRY_MINUTES * 60,
+  };
 }
 
 /**

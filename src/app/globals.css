@@ -202,3 +202,10 @@
     margin: 16mm;
   }
 }
+
+/* The device sign-in code renders at a fixed, scannable size. */
+.device-qr svg {
+  display: block;
+  width: 180px;
+  height: 180px;
+}

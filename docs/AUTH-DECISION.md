@@ -78,6 +78,32 @@ The result is that he has "his own app" on his phone, while the thing
 protecting client phone numbers and private notes is still a real session and
 not a guessable path.
 
+## Why the shop's QR code must never sign anyone in
+
+The obvious-sounding shortcut is for the barber to scan the shop's QR and be
+signed in. It is the single most dangerous idea in this document.
+
+That code is **printed on the window**. Every client who walks past scans it.
+If it carried a credential, the entire street would be signed in as the
+barber, with every client's phone number and private notes in front of them.
+It leads to the booking page and nothing else, and there is a test asserting
+it contains no token and no dashboard path.
+
+What the idea was reaching for — scan something, be signed in — is safe in a
+different shape: a **device-link code generated inside an already-signed-in
+session**, shown on screen for two minutes, single use. The same pattern as
+linking a desktop messaging client. The phone in your hand vouches for the
+new one; nothing printed vouches for anybody.
+
+Two properties do the work:
+
+- **It is never printed.** A printed sign-in code is a credential anyone can
+  photograph off a wall, and it cannot be revoked.
+- **It expires in two minutes and works once.** An emailed link needs fifteen
+  because it sits in an inbox waiting to be found. A code on a screen is
+  scanned in seconds; longer is just more time for someone to photograph it
+  over a shoulder.
+
 ## Cost of being wrong
 
 Low, which is what makes this the right default. If repeat clients start

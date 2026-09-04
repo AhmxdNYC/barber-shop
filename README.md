@@ -31,7 +31,7 @@ npm run dev                   # http://localhost:3000
 ```
 
 ```bash
-npm test                      # 101 tests
+npm test                      # 106 tests
 npm run verify:qr             # decode the poster QR, check the URL
 ```
 
@@ -52,6 +52,7 @@ writes and deletes rows.
 | `/dashboard` | Barber-only: the day, stats, walk-ins |
 | `/dashboard/availability` | Per-barber hours, lunch breaks, time off |
 | `/dashboard/clients` | Visit history, no-shows, private notes |
+| `/dashboard/settings` | Sign in another device, sign out |
 | `/booking/[token]` | Guest booking management — reschedule or cancel, no account |
 | `/booking/lost` | Resend a lost booking link |
 | `/poster` | Print-ready scan-to-book QR poster for the shop (unlinked) |
