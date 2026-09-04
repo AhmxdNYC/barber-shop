@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db/client";
 import { requireBarber } from "@/lib/auth/current-user";
 import { createAppointment } from "@/lib/booking/create-appointment";
 import { fromZonedTime } from "date-fns-tz";
+import { bookingDetailsFor } from "@/lib/notifications/booking-details";
+import { sendBookingCancelled } from "@/lib/notifications/send";
 
 /**
  * Barber-side appointment actions.
@@ -93,6 +95,12 @@ export async function cancelAppointmentAction(formData: FormData) {
       cancellationReason: reason ?? "Cancelled by the shop",
     },
   });
+
+  // The client did not choose this, so telling them is not optional.
+  const context = await bookingDetailsFor(id);
+  if (context) {
+    await sendBookingCancelled(id, context.recipient, context.details);
+  }
 
   revalidatePath("/dashboard");
 }

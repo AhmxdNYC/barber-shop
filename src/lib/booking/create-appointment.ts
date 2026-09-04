@@ -4,6 +4,8 @@ import { isRetryableTransactionError, isSlotTakenError } from "@/lib/db/errors";
 import { withTransactionRetry } from "@/lib/db/transaction";
 import { issueManageToken } from "./manage-token";
 import { slotsForBarber } from "@/lib/availability/query";
+import { bookingDetailsFor } from "@/lib/notifications/booking-details";
+import { sendBookingConfirmation } from "@/lib/notifications/send";
 import type { BookingResult } from "./types";
 
 /**
@@ -136,11 +138,23 @@ export async function createAppointment(
       }),
     );
 
+    // The plaintext token exists only here, so the confirmation has to be
+    // sent now — it carries the only cancellation link the guest will get.
+    // A failed send must not fail the booking, so this never throws.
+    const context = await bookingDetailsFor(appointment.id, token);
+    if (context) {
+      await sendBookingConfirmation(
+        appointment.id,
+        context.recipient,
+        context.details,
+      );
+    }
+
     return {
       ok: true,
       reference: appointment.id.slice(-6).toUpperCase(),
-      // The token is returned once so a confirmation email can carry it.
-      message: buildConfirmationMessage(token),
+      message:
+        "Check your email — we've sent your confirmation and a link to cancel if you need to.",
     };
   } catch (error) {
     // A retry that still conflicts means the slot genuinely went to someone
@@ -164,9 +178,4 @@ function formatShopDate(instant: Date, timeZone: string): string {
     month: "2-digit",
     day: "2-digit",
   }).format(instant);
-}
-
-function buildConfirmationMessage(token: string): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  return `Keep this link to change or cancel: ${base}/booking/${token}`;
 }

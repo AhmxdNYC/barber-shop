@@ -8,6 +8,8 @@ import {
   looksLikeManageToken,
   manageTokenExpired,
 } from "@/lib/booking/manage-token";
+import { bookingDetailsFor } from "@/lib/notifications/booking-details";
+import { sendBookingCancelled } from "@/lib/notifications/send";
 
 /**
  * Guest booking management.
@@ -112,6 +114,11 @@ export async function cancelByTokenAction(
         : "Cancelled by client",
     },
   });
+
+  const context = await bookingDetailsFor(booking.id);
+  if (context) {
+    await sendBookingCancelled(booking.id, context.recipient, context.details);
+  }
 
   revalidatePath("/dashboard");
   return { cancelled: true };

@@ -128,6 +128,40 @@ leftovers.
 
 The guard exists because this already cost the development database once.
 
+### The Postgres driver must not be bundled
+
+Every database read failed inside Next with `Postgres.app failed to verify
+"trust" authentication`, while the identical connection string worked from
+plain Node, from the seed script and under Vitest.
+
+`pg` does native protocol handling and dynamic requires that a bundler
+cannot follow, so it is listed in `serverExternalPackages` and loaded
+normally at runtime. On a local Postgres.app setup the role also needs a
+real password — the adapter cannot complete a passwordless `trust`
+handshake from inside Next's server runtime, even though `psql` and plain
+`pg` both can.
+
+Production is unaffected: any hosted database uses a password anyway. It is
+recorded here because the symptom points at authentication and the cause is
+bundling, which costs an hour if you have not seen it before.
+
+### Emails are plain text, and failing to send never fails a booking
+
+Two decisions, both about not overbuilding.
+
+A barbershop confirmation is five facts and a link. HTML would add rendering
+differences across mail clients, spam-filter weight and a build step, for
+nothing the reader gains. Plain text also renders correctly in the phone
+lock-screen preview, which is where most of these are actually read.
+
+More importantly, sending is wrapped so a delivery failure cannot fail the
+booking. The appointment is the thing that matters; the email is a courtesy.
+Every attempt writes a `Notification` row whether it succeeded or not, so a
+lost message is a visible, retryable record rather than a line in a log —
+which matters most for the confirmation, because it carries the only
+cancellation link a guest ever receives. There is a test that forces the
+transport to fail and asserts the booking still succeeds.
+
 ### Prisma 7 moved the connection URL
 
 Prisma 7 no longer accepts `url` in the schema and no longer auto-loads
@@ -278,6 +312,15 @@ reset, no role management UI. Adding the other three chairs is three rows.
 
 The auth surface of this application is one account. That is a deliberate
 security posture, not an unfinished feature.
+
+### Adding time off never cancels existing bookings
+
+Blocking out a window that already contains appointments reports how many
+clash and leaves them alone.
+
+Silently cancelling someone's haircut because the barber blocked an
+afternoon is a worse failure than showing him the conflict and letting him
+decide. He can call them; the software cannot.
 
 ### Placeholder chairs say they are placeholders
 

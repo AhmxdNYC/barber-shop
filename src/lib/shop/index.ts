@@ -7,3 +7,4 @@ export * from "./services";
 export * from "./hours";
 export * from "./format";
 export * from "./barbers";
+export * from "./time-input";
