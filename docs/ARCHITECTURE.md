@@ -27,8 +27,10 @@ why daylight saving, buffers and lead times are tested without a database.
 ```
 src/
 ├── app/
-│   ├── (pages)              landing, barbers, services, gallery, book, poster
-│   └── actions/booking.ts   server actions — the client's only way in
+│   ├── (public)             landing, barbers, services, gallery, book, poster
+│   ├── login/               barber sign-in
+│   ├── dashboard/           barber-only, guarded twice
+│   └── actions/             booking + auth server actions
 │
 ├── components/
 │   ├── ui/                  button · text-field · price-row
@@ -45,6 +47,11 @@ src/
 │   │     types.ts           the BookingProvider seam
 │   │     providers/         database · mock · hosted
 │   │     manage-token.ts    guest capability tokens
+│   ├── auth/
+│   │     password.ts        scrypt hashing
+│   │     session.ts         signed JWT cookie (edge-safe)
+│   │     current-user.ts    requireBarber()
+│   ├── dashboard/queries.ts read models, one per panel
 │   ├── db/
 │   │     client.ts          Prisma on a driver adapter
 │   │     errors.ts          isSlotTakenError — the lost-race detector
@@ -85,6 +92,25 @@ whether or not the person ever signs in. `Payment`, `Notification` and
 `WaitlistEntry` hang off appointments. `ShopSettings` is a single row holding
 policy — buffer, lead time, cancellation window — as data rather than
 constants.
+
+## The barber side
+
+`/dashboard` is guarded twice: `middleware.ts` redirects unauthenticated
+requests, and every page calls `requireBarber()` next to the query. Middleware
+is one `matcher` typo away from being disabled, and these pages read clients'
+phone numbers and private notes, so the check is repeated where the data is
+actually touched.
+
+Sessions are a signed JWT in an httpOnly cookie rather than a session table —
+there is one barber, and nothing here needs revocation that rotating
+`AUTH_SECRET` would not also achieve. `jose` is used rather than
+`node:crypto` because middleware runs on the edge runtime.
+
+Accounts are made from the command line; there is no signup page:
+
+```bash
+npm run account:create -- eduardo@example.com "Eduardo"
+```
 
 ## Running it
 

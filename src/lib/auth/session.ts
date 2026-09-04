@@ -1,0 +1,72 @@
+import { SignJWT, jwtVerify } from "jose";
+
+/**
+ * Barber sessions.
+ *
+ * A signed JWT in an httpOnly cookie rather than a session table: there is
+ * one barber, sessions are short, and nothing here needs server-side
+ * revocation that changing the secret would not also achieve.
+ *
+ * `jose` is used rather than node:crypto because this must also verify
+ * inside Next middleware, which runs on the edge runtime where node:crypto
+ * is not fully available.
+ */
+export const SESSION_COOKIE = "barbershop_session";
+const MAX_AGE_SECONDS = 60 * 60 * 12; // a working day
+
+export type SessionPayload = {
+  userId: string;
+  email: string;
+  name: string;
+};
+
+function secret(): Uint8Array {
+  const value = process.env.AUTH_SECRET;
+  if (!value || value.length < 32) {
+    throw new Error(
+      "AUTH_SECRET must be set to at least 32 characters. " +
+        "Generate one with: openssl rand -base64 32",
+    );
+  }
+  return new TextEncoder().encode(value);
+}
+
+export async function createSessionToken(payload: SessionPayload): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${MAX_AGE_SECONDS}s`)
+    .sign(secret());
+}
+
+export async function readSessionToken(
+  token: string | undefined,
+): Promise<SessionPayload | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, secret());
+    if (
+      typeof payload.userId !== "string" ||
+      typeof payload.email !== "string" ||
+      typeof payload.name !== "string"
+    ) {
+      return null;
+    }
+    return {
+      userId: payload.userId,
+      email: payload.email,
+      name: payload.name,
+    };
+  } catch {
+    // Expired, tampered with, or signed by a rotated secret.
+    return null;
+  }
+}
+
+export const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: MAX_AGE_SECONDS,
+  secure: process.env.NODE_ENV === "production",
+};

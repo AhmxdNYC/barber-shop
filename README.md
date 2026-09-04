@@ -48,6 +48,8 @@ writes and deletes rows.
 | `/services` | Full menu with prices and durations |
 | `/gallery` | Cut gallery (placeholder tiles until real photos) |
 | `/book` | Four-step booking: barber → service → time → details |
+| `/login` | Barber sign-in (not linked from the public site) |
+| `/dashboard` | Barber-only: the day, stats, clients |
 | `/poster` | Print-ready scan-to-book QR poster for the shop (unlinked) |
 
 `/book` accepts `?barber=<slug>&service=<slug>` and skips straight to time

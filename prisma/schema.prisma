@@ -60,10 +60,14 @@ enum WaitlistStatus {
   EXPIRED
 }
 
+/// Authentication only. Clients do not have accounts — see
+/// docs/AUTH-DECISION.md. In practice this table holds the barbers.
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   emailVerified DateTime? @db.Timestamptz(3)
+  /// scrypt hash. Null for a user who cannot sign in yet.
+  passwordHash  String?
   name          String?
   phone         String?
   image         String?
