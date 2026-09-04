@@ -33,13 +33,13 @@ export function RecoverBookingForm({ shopPhone }: { shopPhone: string }) {
     <form action={action} className="mt-8 grid gap-4">
       <TextField
         label="Email"
+        name="email"
         type="email"
         value={email}
         onChange={setEmail}
         autoComplete="email"
         placeholder="The address you booked with"
       />
-      <input type="hidden" name="email" value={email} />
 
       {state.error && (
         <p role="alert" className="rounded-[3px] border border-accent bg-accent-dim px-4 py-3 text-sm">

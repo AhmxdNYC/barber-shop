@@ -1,5 +1,13 @@
 type Props = {
   label: string;
+  /**
+   * Form field name. Always set this on inputs inside a form: without it the
+   * value has to be mirrored into a hidden input from React state, and
+   * browser or keychain autofill frequently sets the DOM value without
+   * firing React's change event — so the field looks filled and an empty
+   * string is submitted.
+   */
+  name?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -11,6 +19,7 @@ type Props = {
 
 export function TextField({
   label,
+  name,
   value,
   onChange,
   placeholder,
@@ -27,6 +36,7 @@ export function TextField({
       </span>
       <input
         type={type}
+        name={name}
         value={value}
         placeholder={placeholder}
         autoComplete={autoComplete}

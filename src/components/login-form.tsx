@@ -60,13 +60,13 @@ function MagicLink() {
     <form action={action} className="grid gap-4">
       <TextField
         label="Email"
+        name="email"
         type="email"
         value={email}
         onChange={setEmail}
         autoComplete="username"
         placeholder="you@example.com"
       />
-      <input type="hidden" name="email" value={email} />
 
       {state.error && (
         <p role="alert" className="rounded-[3px] border border-accent bg-accent-dim px-4 py-3 text-sm">
@@ -99,22 +99,22 @@ function PasswordForm({ next }: { next?: string }) {
 
       <TextField
         label="Email"
+        name="email"
         type="email"
         value={email}
         onChange={setEmail}
         autoComplete="username"
         placeholder="you@example.com"
       />
-      <input type="hidden" name="email" value={email} />
 
       <TextField
         label="Password"
+        name="password"
         type="password"
         value={password}
         onChange={setPassword}
         autoComplete="current-password"
       />
-      <input type="hidden" name="password" value={password} />
 
       {state.error && (
         <p role="alert" className="rounded-[3px] border border-accent bg-accent-dim px-4 py-3 text-sm">
