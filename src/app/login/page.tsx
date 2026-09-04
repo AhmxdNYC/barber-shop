@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { LoginForm } from "@/components/login-form";
 
 export const metadata: Metadata = {
@@ -6,12 +8,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Sessions are long-lived, so this page is usually unnecessary. */
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
+
+  // Already signed in — send him straight to work rather than showing a
+  // form he does not need.
+  if (await getCurrentUser()) redirect("/dashboard");
 
   return (
     <div className="mx-auto flex max-w-md flex-col justify-center px-5 py-24">

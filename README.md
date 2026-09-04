@@ -75,6 +75,16 @@ npm run verify:qr    # decodes the generated code and checks the URL
 A printed QR code can never be corrected. Set the final URL before printing,
 and scan a test copy first.
 
+## Installing it on the barber's phone
+
+Open `/dashboard` in Safari or Chrome on the phone, then **Share → Add to
+Home Screen**. iOS installs whatever page is open, so the icon lands on the
+dashboard rather than the marketing site, and opens full-screen with no
+address bar.
+
+Combined with the rolling thirty-day session, tapping the icon goes straight
+to today's schedule with no sign-in step.
+
 ## Swapping in real content
 
 All shop-specific content is in one file, [`src/lib/shop.ts`](src/lib/shop.ts):

@@ -48,6 +48,36 @@ That is **one account, seeded by a script**. No signup page, no invite flow,
 no password reset, no role management UI. When the other chairs get their own
 logins it is a row per barber, not a registration system.
 
+## Why not one login for everyone, with the barber routed by role
+
+It is the tidier-sounding design: one auth system, sign in, land wherever
+your role belongs. It is wrong here for the same reason as above — it makes
+every client create an account to book a haircut, which is the friction this
+whole decision exists to avoid. Tidiness in the auth layer is not worth
+conversion at the booking form.
+
+## Why not a secret URL for the barber
+
+A URL is not a credential. It leaks through browser history, referrer
+headers, shared devices and anyone glancing at the screen, and it cannot be
+revoked without breaking the bookmark. Obscurity is fine as a convenience
+layer and useless as a control.
+
+What the barber actually wanted from that idea — "just let me get to my
+thing without a login screen" — is better solved honestly:
+
+- **A rolling thirty-day session**, refreshed on every visit, so he signs in
+  about as often as he changes phone.
+- **A web app manifest**, so `/dashboard` can be added to his home screen and
+  opens full-screen with no address bar. Tapping the icon puts him straight
+  on today's schedule.
+- **`/login` redirects to `/dashboard`** when he is already signed in, so the
+  form never appears unnecessarily.
+
+The result is that he has "his own app" on his phone, while the thing
+protecting client phone numbers and private notes is still a real session and
+not a guessable path.
+
 ## Cost of being wrong
 
 Low, which is what makes this the right default. If repeat clients start

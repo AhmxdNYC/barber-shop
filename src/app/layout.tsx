@@ -25,6 +25,15 @@ export const metadata: Metadata = {
     template: `%s · ${SHOP.name}`,
   },
   description: `${SHOP.tagline} Book online at ${SHOP.name}, ${ADDRESS_LINE}.`,
+  appleWebApp: {
+    capable: true,
+    title: "Eduardo",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-180.png",
+  },
   openGraph: {
     title: `${SHOP.name} — Barbershop in ${SHOP.address.city}`,
     description: SHOP.tagline,
