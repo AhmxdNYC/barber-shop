@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.github
+.vercel
+npm-debug.log*
+README.md
+PLAN.md
+docs
+coverage
+*.local
+.env
+.env.*
+!.env.example

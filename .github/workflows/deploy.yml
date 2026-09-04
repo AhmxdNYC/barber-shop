@@ -1,0 +1,43 @@
+name: Deploy to Vultr
+
+# Tests gate the deploy: a red availability engine must never reach the shop.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npm test
+      - run: npm run verify:qr
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VULTR_HOST }}
+          username: ${{ secrets.VULTR_USER }}
+          key: ${{ secrets.VULTR_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/barbershop
+            git pull --ff-only origin main
+            docker compose build app
+            docker compose up -d
+            # Migrations run after the new image exists but against the
+            # live database, so they must be backward compatible.
+            docker compose run --rm app npx prisma migrate deploy
+            docker image prune -f
