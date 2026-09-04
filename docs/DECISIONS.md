@@ -145,6 +145,40 @@ Production is unaffected: any hosted database uses a password anyway. It is
 recorded here because the symptom points at authentication and the cause is
 bundling, which costs an hour if you have not seen it before.
 
+### Rescheduling updates the row rather than cancelling and rebooking
+
+The obvious implementation is to cancel the old appointment and create a new
+one. That releases the original slot *before* the replacement is secured, so
+a client trying to move an appointment can end up with none at all if
+someone takes the new time in between.
+
+Updating in place means the exclusion constraint either accepts the move or
+rejects it, and a rejection leaves the original booking untouched. It also
+keeps the appointment's identity: same row, same manage link, same history
+on the client record. There is a test that attempts an invalid move and
+asserts the original survives.
+
+### The barber signs in about once a month, without typing a password
+
+Sessions were twelve hours, which meant a password typed on a phone every
+single morning. That is precisely the friction that ends with the dashboard
+going unopened — and an unopened dashboard is the failure mode this whole
+project is shaped around.
+
+Two changes. Sessions last a rolling thirty days, refreshed on every visit,
+so a barber who uses it at all never signs in again. And sign-in is a link
+emailed to him rather than a password: he taps it once and is in. The
+password form stays as a fallback for when email is not configured.
+
+Links are random, stored hashed, single use and expire in fifteen minutes,
+for the same reasons as the guest booking links. Single use matters
+particularly here: a mail scanner that follows the link must not leave a
+working session behind it.
+
+The trade is that a lost phone stays signed in until the cookie expires or
+`AUTH_SECRET` is rotated. For a dashboard on a barber's own phone that is
+the right balance, and "Sign out" exists for when it is not.
+
 ### Emails are plain text, and failing to send never fails a booking
 
 Two decisions, both about not overbuilding.

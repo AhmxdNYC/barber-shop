@@ -103,3 +103,51 @@ export function bookingCancelled(details: BookingDetails): OutboundMessage {
     ].join("\n"),
   };
 }
+
+
+export function manageLinkResent(details: BookingDetails): OutboundMessage {
+  return {
+    to: "",
+    subject: `Your booking at ${SHOP.name}`,
+    body: [
+      `Hi ${details.clientName},`,
+      "",
+      "Here's the link to your booking:",
+      "",
+      details.manageUrl,
+      "",
+      `  ${when(details)}`,
+      `  ${details.serviceName} with ${details.barberName}`,
+      "",
+      "Any link we sent you before has stopped working — use this one.",
+      "",
+      `${SHOP.name}`,
+      SHOP.phone,
+    ].join("\n"),
+  };
+}
+
+
+/** Sign-in link for a barber. Short-lived and single use. */
+export function barberSignInLink(options: {
+  name: string;
+  url: string;
+  expiryMinutes: number;
+}): OutboundMessage {
+  return {
+    to: "",
+    subject: `Sign in to ${SHOP.name}`,
+    body: [
+      `Hi ${options.name},`,
+      "",
+      "Tap here to sign in:",
+      "",
+      options.url,
+      "",
+      `This link works once and expires in ${options.expiryMinutes} minutes.`,
+      "You'll stay signed in on this phone for a month afterwards.",
+      "",
+      "If you didn't ask for this, ignore it — nothing has changed.",
+    ].join("\n"),
+  };
+}

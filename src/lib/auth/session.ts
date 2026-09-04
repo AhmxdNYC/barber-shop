@@ -12,7 +12,20 @@ import { SignJWT, jwtVerify } from "jose";
  * is not fully available.
  */
 export const SESSION_COOKIE = "barbershop_session";
-const MAX_AGE_SECONDS = 60 * 60 * 12; // a working day
+
+/**
+ * Thirty days, refreshed on every dashboard visit.
+ *
+ * The original twelve hours meant the barber typed a password every single
+ * morning, which is exactly the kind of friction that ends with him not
+ * opening the app. A rolling month means he signs in about as often as he
+ * changes his phone, and stays signed in as long as he keeps using it.
+ *
+ * The trade is that a lost phone stays signed in until the cookie expires
+ * or the secret is rotated. For a dashboard on a barber's own phone that is
+ * the right balance; "Sign out" is there when it is not.
+ */
+const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 export type SessionPayload = {
   userId: string;

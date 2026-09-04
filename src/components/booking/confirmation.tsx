@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getBarber, type Service } from "@/lib/shop";
 import { ButtonLink } from "@/components/ui/button";
 import type { TimeSlot } from "@/lib/booking";
@@ -41,6 +42,13 @@ export function Confirmation({
       <ButtonLink href="/" variant="outline" className="mt-8">
         Back to the shop
       </ButtonLink>
+
+      <p className="mt-6 text-xs text-bone-3">
+        Lost the email?{" "}
+        <Link href="/booking/lost" className="text-bone-2 underline underline-offset-2">
+          Get your link again
+        </Link>
+      </p>
     </div>
   );
 }

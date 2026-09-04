@@ -9,7 +9,12 @@ import {
   manageTokenExpired,
 } from "@/lib/booking/manage-token";
 import { bookingDetailsFor } from "@/lib/notifications/booking-details";
-import { sendBookingCancelled } from "@/lib/notifications/send";
+import { sendBookingCancelled, sendBookingConfirmation, sendManageLink } from "@/lib/notifications/send";
+import { isRateLimited, reissueManageToken } from "@/lib/booking/recovery";
+import { rescheduleAppointment } from "@/lib/booking/reschedule";
+import { slotsForBarber } from "@/lib/availability/query";
+import { prisma as db } from "@/lib/db/client";
+import { formatMinutes } from "@/lib/shop";
 
 /**
  * Guest booking management.
@@ -18,6 +23,12 @@ import { sendBookingCancelled } from "@/lib/notifications/send";
  * docs/GUEST-CANCELLATION.md for why the token is hashed, scoped and
  * expiring, and why cancelling is a POST rather than a link.
  */
+
+export type RescheduleOption = {
+  /** ISO instant. */
+  start: string;
+  label: string;
+};
 
 export type ManagedBooking = {
   id: string;
@@ -28,6 +39,7 @@ export type ManagedBooking = {
   contactName: string;
   priceCents: number;
   canCancel: boolean;
+  canReschedule: boolean;
   cancellationWindowHours: number;
 };
 
@@ -67,6 +79,10 @@ export async function findBookingByToken(
     contactName: appointment.contactName,
     priceCents: appointment.priceCents,
     canCancel:
+      (appointment.status === "CONFIRMED" ||
+        appointment.status === "PENDING_PAYMENT") &&
+      hoursUntil > 0,
+    canReschedule:
       (appointment.status === "CONFIRMED" ||
         appointment.status === "PENDING_PAYMENT") &&
       hoursUntil > 0,
@@ -122,4 +138,115 @@ export async function cancelByTokenAction(
 
   revalidatePath("/dashboard");
   return { cancelled: true };
+}
+
+
+export type RecoverState = { sent?: boolean; error?: string };
+
+/**
+ * Sends a replacement booking link.
+ *
+ * Always answers the same way whether or not a booking exists. Any other
+ * behaviour turns this into a way to test which email addresses are clients
+ * of the shop — which is exactly the kind of thing a barbershop's clients
+ * would not expect to be discoverable.
+ */
+export async function recoverBookingLinkAction(
+  _previous: RecoverState,
+  formData: FormData,
+): Promise<RecoverState> {
+  const parsed = z
+    .object({ email: z.string().trim().email().max(200) })
+    .safeParse({ email: formData.get("email") });
+
+  // Even a malformed address gets the neutral answer, so the response
+  // cannot be used to probe anything.
+  if (!parsed.success) return { sent: true };
+
+  const email = parsed.data.email.toLowerCase();
+
+  if (await isRateLimited(email)) {
+    return {
+      error: "We've sent several links to that address recently. Check your inbox, or call the shop.",
+    };
+  }
+
+  const reissued = await reissueManageToken(email);
+  if (reissued) {
+    const context = await bookingDetailsFor(reissued.appointmentId, reissued.token);
+    if (context) {
+      await sendManageLink(reissued.appointmentId, context.recipient, context.details);
+    }
+  }
+
+  return { sent: true };
+}
+
+
+/**
+ * Open times for moving an existing booking.
+ *
+ * Scoped to the same barber and service, because "reschedule" means the same
+ * haircut with the same person at a different time. Changing either of those
+ * is a new booking.
+ */
+export async function rescheduleOptionsAction(
+  token: string,
+  date: string,
+): Promise<RescheduleOption[]> {
+  const booking = await findBookingByToken(token);
+  if (!booking || !booking.canReschedule) return [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return [];
+
+  const appointment = await db.appointment.findUnique({
+    where: { id: booking.id },
+    select: {
+      barber: { select: { slug: true } },
+      service: { select: { slug: true } },
+    },
+  });
+  if (!appointment) return [];
+
+  const slots = await slotsForBarber(
+    appointment.barber.slug,
+    appointment.service.slug,
+    date,
+  );
+  return slots.map((s) => ({
+    start: s.start.toISOString(),
+    label: formatMinutes(s.startMinutes),
+  }));
+}
+
+export type RescheduleState = { error?: string; moved?: boolean };
+
+export async function rescheduleByTokenAction(
+  _previous: RescheduleState,
+  formData: FormData,
+): Promise<RescheduleState> {
+  const parsed = z
+    .object({
+      token: z.string().min(10).max(80),
+      start: z.string().min(10).max(40),
+    })
+    .safeParse({ token: formData.get("token"), start: formData.get("start") });
+
+  if (!parsed.success) return { error: "Pick a time and try again." };
+
+  const booking = await findBookingByToken(parsed.data.token);
+  if (!booking) return { error: "That link has expired or is not valid." };
+
+  const start = new Date(parsed.data.start);
+  if (Number.isNaN(start.getTime())) return { error: "That time is not valid." };
+
+  const result = await rescheduleAppointment(booking.id, start);
+  if (!result.ok) return { error: result.message };
+
+  const context = await bookingDetailsFor(booking.id, parsed.data.token);
+  if (context) {
+    await sendBookingConfirmation(booking.id, context.recipient, context.details);
+  }
+
+  revalidatePath("/dashboard");
+  return { moved: true };
 }

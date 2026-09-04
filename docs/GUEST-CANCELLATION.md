@@ -76,7 +76,9 @@ put it in search results.
 
 ## Losing the link
 
-Realistically, people delete the email.
+Realistically, people delete the email. Without recovery a guest has no way
+to cancel at all, which pushes them back to phoning the shop — the problem
+online booking exists to solve.
 
     /booking/lost  →  enter your email  →  we send a fresh link
 
@@ -86,7 +88,9 @@ Rules for that endpoint:
   booking for that address, we've sent a link." Otherwise it becomes a way
   to test which email addresses are clients of the shop.
 - Rate limited per address and per IP, so it cannot be used to spray email.
-- Issuing a new token **invalidates the previous one**.
+- Issuing a new token **invalidates the previous one**, because only the
+  hash is stored and there is nothing to resend. There is a test asserting
+  the old hash stops resolving.
 
 ## What is enforced on the server
 

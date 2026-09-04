@@ -1,7 +1,13 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, readSessionToken, type SessionPayload } from "./session";
+import {
+  SESSION_COOKIE,
+  SESSION_COOKIE_OPTIONS,
+  createSessionToken,
+  readSessionToken,
+  type SessionPayload,
+} from "./session";
 
 /** The signed-in barber, or null. */
 export async function getCurrentUser(): Promise<SessionPayload | null> {
@@ -19,5 +25,22 @@ export async function getCurrentUser(): Promise<SessionPayload | null> {
 export async function requireBarber(): Promise<SessionPayload> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  // Roll the session forward, so a barber who opens the dashboard during any
+  // given month never has to sign in again. Without this the cookie would
+  // expire on a fixed date regardless of use, and he would be locked out
+  // mid-shift for no reason.
+  await refreshSession(user);
+
   return user;
+}
+
+async function refreshSession(user: SessionPayload): Promise<void> {
+  try {
+    const token = await createSessionToken(user);
+    const store = await cookies();
+    store.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  } catch {
+    // Refresh is a convenience; a failure here must never block the page.
+  }
 }

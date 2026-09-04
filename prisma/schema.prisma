@@ -45,6 +45,11 @@ enum NotificationType {
   CANCELLED
   RESCHEDULED
   WAITLIST_OPENING
+  /// A replacement "manage my booking" link, sent when a client loses theirs.
+  MANAGE_LINK
+  /// A barber sign-in link. Kept distinct from MANAGE_LINK so the guest
+  /// recovery rate limiter cannot be affected by staff sign-ins.
+  SIGN_IN
 }
 
 enum NotificationStatus {

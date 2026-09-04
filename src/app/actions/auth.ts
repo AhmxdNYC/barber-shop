@@ -10,6 +10,12 @@ import {
   SESSION_COOKIE_OPTIONS,
   createSessionToken,
 } from "@/lib/auth/session";
+import {
+  MAGIC_LINK_LIMITS,
+  isMagicLinkRateLimited,
+  issueMagicLink,
+} from "@/lib/auth/magic-link";
+import { sendBarberSignInLink } from "@/lib/notifications/send";
 
 const Credentials = z.object({
   email: z.string().email().max(200),
@@ -68,4 +74,42 @@ export async function logoutAction() {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
   redirect("/login");
+}
+
+
+export type MagicLinkState = { sent?: boolean; error?: string };
+
+/**
+ * Emails a sign-in link.
+ *
+ * The answer is the same whether or not the address belongs to a barber, so
+ * this cannot be used to discover who works at the shop.
+ */
+export async function requestMagicLinkAction(
+  _previous: MagicLinkState,
+  formData: FormData,
+): Promise<MagicLinkState> {
+  const parsed = z
+    .object({ email: z.string().trim().email().max(200) })
+    .safeParse({ email: formData.get("email") });
+
+  if (!parsed.success) return { sent: true };
+
+  const email = parsed.data.email.toLowerCase();
+
+  if (await isMagicLinkRateLimited(email)) {
+    return { error: "Too many sign-in links requested. Try again shortly." };
+  }
+
+  const issued = await issueMagicLink(email);
+  if (issued) {
+    const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    await sendBarberSignInLink(email, {
+      name: issued.name,
+      url: `${base}/login/verify?token=${issued.token}`,
+      expiryMinutes: MAGIC_LINK_LIMITS.EXPIRY_MINUTES,
+    });
+  }
+
+  return { sent: true };
 }

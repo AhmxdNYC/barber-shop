@@ -2,9 +2,11 @@ import "server-only";
 import { prisma } from "@/lib/db/client";
 import { resolveTransport } from "./transports";
 import {
+  barberSignInLink,
   bookingCancelled,
   bookingConfirmed,
   bookingReminder,
+  manageLinkResent,
   type BookingDetails,
 } from "./templates";
 import type { OutboundMessage } from "./types";
@@ -27,7 +29,9 @@ type NotificationType =
   | "REMINDER_24H"
   | "CANCELLED"
   | "RESCHEDULED"
-  | "WAITLIST_OPENING";
+  | "WAITLIST_OPENING"
+  | "MANAGE_LINK"
+  | "SIGN_IN";
 
 async function deliver(
   appointmentId: string | null,
@@ -93,4 +97,28 @@ export async function sendBookingCancelled(
   details: BookingDetails,
 ) {
   await deliver(appointmentId, "CANCELLED", recipient, bookingCancelled(details));
+}
+
+
+export async function sendManageLink(
+  appointmentId: string,
+  recipient: string,
+  details: BookingDetails,
+) {
+  await deliver(appointmentId, "MANAGE_LINK", recipient, manageLinkResent(details));
+}
+
+
+/**
+ * Sends a barber sign-in link.
+ *
+ * Recorded with a null appointment id — it is not about a booking, but it
+ * still belongs in the outbox so a link that failed to send is visible
+ * rather than a mystery about why someone cannot get in.
+ */
+export async function sendBarberSignInLink(
+  recipient: string,
+  options: { name: string; url: string; expiryMinutes: number },
+) {
+  await deliver(null, "SIGN_IN", recipient, barberSignInLink(options));
 }

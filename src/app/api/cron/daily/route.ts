@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { bookingDetailsFor } from "@/lib/notifications/booking-details";
 import { sendBookingReminder } from "@/lib/notifications/send";
+import { purgeExpiredMagicLinks } from "@/lib/auth/magic-link";
 
 /**
  * The one scheduled job.
@@ -56,9 +57,12 @@ export async function GET(request: NextRequest) {
     data: { status: "CANCELLED", cancellationReason: "Hold expired" },
   });
 
+  const purgedLinks = await purgeExpiredMagicLinks();
+
   return NextResponse.json({
     remindersSent: sent,
     holdsExpired: expired.count,
+    expiredLinksPurged: purgedLinks,
     ranAt: now.toISOString(),
   });
 }

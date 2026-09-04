@@ -8,6 +8,7 @@ import {
 } from "@/app/actions/manage-booking";
 import { formatPrice } from "@/lib/shop";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { ReschedulePanel } from "./reschedule-panel";
 import { useState } from "react";
 
 export function ManageBooking({
@@ -24,6 +25,8 @@ export function ManageBooking({
     {},
   );
   const [confirming, setConfirming] = useState(false);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [moved, setMoved] = useState(false);
 
   const when = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -69,8 +72,32 @@ export function ManageBooking({
         </p>
       )}
 
-      {booking.canCancel ? (
-        <div className="mt-8">
+      {moved && (
+        <p className="mt-4 rounded-[3px] border border-brass-dim bg-brass-dim/40 px-4 py-3 text-sm text-brass">
+          Your appointment has been moved. We&rsquo;ve emailed the new details.
+        </p>
+      )}
+
+      {booking.canReschedule && !confirming && (
+        <div className="mt-6">
+          {rescheduling ? (
+            <ReschedulePanel
+              token={token}
+              onDone={() => {
+                setRescheduling(false);
+                setMoved(true);
+              }}
+            />
+          ) : (
+            <Button variant="outline" onClick={() => setRescheduling(true)}>
+              Change the time
+            </Button>
+          )}
+        </div>
+      )}
+
+      {booking.canCancel && !rescheduling ? (
+        <div className="mt-4">
           {!confirming ? (
             <Button variant="outline" onClick={() => setConfirming(true)}>
               Cancel this booking
@@ -94,7 +121,7 @@ export function ManageBooking({
           )}
           <p className="mt-4 text-sm text-bone-3">
             Free to cancel more than {booking.cancellationWindowHours} hours
-            ahead. Need to change the time? Call the shop on {shopPhone}.
+            ahead. Anything else, call the shop on {shopPhone}.
           </p>
         </div>
       ) : (
