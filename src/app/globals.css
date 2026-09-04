@@ -134,3 +134,71 @@
     color-mix(in srgb, var(--color-ground) 32%, transparent) 100%
   );
 }
+
+/* ── printable poster ─────────────────────────────────────────────
+   The site is dark; paper is not. Printing the dark theme wastes a
+   cartridge and, worse, a low-contrast QR code scans badly. The
+   poster is therefore always black on white, on screen and on paper. */
+.poster {
+  border: 1px solid #d4d4d4;
+}
+
+.poster__stripe {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.poster__stripe > i {
+  display: block;
+  height: 6px;
+  width: 26px;
+  border-radius: 3px;
+  background: #c9a25e;
+}
+.poster__stripe > i:first-child {
+  width: 52px;
+  background: #cc4b3c;
+}
+.poster__stripe > i:last-child {
+  background: #111111;
+}
+
+/* The generated SVG has no intrinsic size — give it one. */
+.poster__qr svg {
+  width: 260px;
+  height: 260px;
+  display: block;
+  margin: 0 auto;
+}
+
+@media print {
+  /* Chrome and Safari strip backgrounds unless told otherwise. */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Site chrome has no business on a poster. */
+  body > header,
+  body > footer {
+    display: none !important;
+  }
+
+  .poster {
+    border: none;
+    max-width: none;
+    width: 100%;
+    padding: 0;
+    break-inside: avoid;
+  }
+
+  .poster__qr svg {
+    width: 320px;
+    height: 320px;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

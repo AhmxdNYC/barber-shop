@@ -30,9 +30,26 @@ npm run dev      # http://localhost:3000
 | `/services` | Full menu with prices and durations |
 | `/gallery` | Cut gallery (placeholder tiles until real photos) |
 | `/book` | Four-step booking: barber → service → time → details |
+| `/poster` | Print-ready scan-to-book QR poster for the shop (unlinked) |
 
 `/book` accepts `?barber=<slug>&service=<slug>` and skips straight to time
 selection, so every card on the site deep-links into a pre-filled booking.
+
+## The QR poster
+
+`/poster` renders a scan-to-book poster the shop can print and put in the
+window. It forces black-on-white in print styles, because the site's dark
+theme both drains a cartridge and produces a QR code that scans badly.
+
+The code is generated locally at build time — no QR web service — and the
+URL it encodes comes from `NEXT_PUBLIC_SITE_URL`.
+
+```bash
+npm run verify:qr    # decodes the generated code and checks the URL
+```
+
+A printed QR code can never be corrected. Set the final URL before printing,
+and scan a test copy first.
 
 ## Swapping in real content
 
