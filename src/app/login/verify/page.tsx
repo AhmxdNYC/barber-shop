@@ -6,6 +6,8 @@ import { consumeMagicLink } from "@/lib/auth/magic-link";
 import {
   SESSION_COOKIE,
   SESSION_COOKIE_OPTIONS,
+  STAFF_HINT_COOKIE,
+  STAFF_HINT_COOKIE_OPTIONS,
   createSessionToken,
 } from "@/lib/auth/session";
 
@@ -35,6 +37,7 @@ export default async function VerifyPage({
     const session = await createSessionToken(account);
     const store = await cookies();
     store.set(SESSION_COOKIE, session, SESSION_COOKIE_OPTIONS);
+    store.set(STAFF_HINT_COOKIE, "1", STAFF_HINT_COOKIE_OPTIONS);
     redirect("/dashboard");
   }
 

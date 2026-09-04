@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import {
   SESSION_COOKIE,
   SESSION_COOKIE_OPTIONS,
+  STAFF_HINT_COOKIE,
+  STAFF_HINT_COOKIE_OPTIONS,
   createSessionToken,
   readSessionToken,
   type SessionPayload,
@@ -40,6 +42,7 @@ async function refreshSession(user: SessionPayload): Promise<void> {
     const token = await createSessionToken(user);
     const store = await cookies();
     store.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+    store.set(STAFF_HINT_COOKIE, "1", STAFF_HINT_COOKIE_OPTIONS);
   } catch {
     // Refresh is a convenience; a failure here must never block the page.
   }

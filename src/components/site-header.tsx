@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { SHOP } from "@/lib/shop";
+import { useStaffHint } from "@/lib/auth/use-staff-hint";
 
 const NAV = [
   { href: "/services", label: "Services" },
@@ -15,6 +16,9 @@ const NAV = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // Lets the barber reach his dashboard after scanning the shop's QR code,
+  // without the public pages giving up static rendering.
+  const isStaff = useStaffHint();
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ground/85 backdrop-blur-md">
@@ -49,6 +53,14 @@ export function SiteHeader() {
               </Link>
             );
           })}
+          {isStaff && (
+            <Link
+              href="/dashboard"
+              className="rounded-[3px] border border-brass px-4 py-2 text-sm font-semibold text-brass transition-colors hover:bg-brass-dim"
+            >
+              Dashboard
+            </Link>
+          )}
           <Link
             href="/book"
             className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-bone transition-colors hover:bg-accent-bright"
@@ -96,6 +108,15 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          {isStaff && (
+            <Link
+              href="/dashboard"
+              onClick={() => setOpen(false)}
+              className="mt-3 block rounded-[3px] border border-brass px-4 py-3 text-center font-semibold text-brass"
+            >
+              Dashboard
+            </Link>
+          )}
           <Link
             href="/book"
             onClick={() => setOpen(false)}

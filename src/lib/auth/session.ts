@@ -76,6 +76,29 @@ export async function readSessionToken(
   }
 }
 
+/**
+ * A cosmetic marker that a barber session exists.
+ *
+ * The session itself is httpOnly, so client JavaScript cannot see it — which
+ * is correct, and also means a statically-rendered page has no way to know
+ * whether to offer a "Dashboard" link. Reading the real cookie in the layout
+ * would make every public page dynamic, slowing the site for every client to
+ * help one barber.
+ *
+ * This carries no identity, no token and no claim. Forging it shows someone
+ * a link, which then redirects them to sign in. It exists purely so the
+ * header can render one extra link without giving up static rendering.
+ */
+export const STAFF_HINT_COOKIE = "barbershop_staff";
+
+export const STAFF_HINT_COOKIE_OPTIONS = {
+  httpOnly: false,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: MAX_AGE_SECONDS,
+  secure: process.env.NODE_ENV === "production",
+};
+
 export const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   sameSite: "lax" as const,

@@ -104,6 +104,31 @@ Two properties do the work:
   scanned in seconds; longer is just more time for someone to photograph it
   over a shoulder.
 
+## Scanning the shop QR when already signed in
+
+There is a version of "scan the shop code to get in" that is entirely safe,
+and it is the one the barber actually wants.
+
+He is already signed in — the session has been on his phone for weeks. He
+just does not want to remember a URL. Scanning the window code opens the
+site, and from there he needs one tap to reach his dashboard. Nothing is
+authenticating him; the session already did that. The QR is navigation.
+
+The obstacle was that the public pages are statically rendered, and the
+session cookie is httpOnly so client JavaScript cannot see it. Reading the
+real cookie in the layout would make every public page dynamic — slower for
+every client, to save one barber a tap.
+
+So a second cookie carries a bare `1` and nothing else: no identity, no
+token, no claim. The header reads it and renders a Dashboard link. Forging
+it gets someone a link that redirects them to sign in, which is verified by
+test. The session stays httpOnly, the pages stay static, and the barber
+scans the window and taps once.
+
+The general shape is worth remembering: when the safe thing is blocked by a
+constraint, the answer is usually a smaller piece of information that is
+harmless to expose, not a relaxation of the thing protecting you.
+
 ## Cost of being wrong
 
 Low, which is what makes this the right default. If repeat clients start

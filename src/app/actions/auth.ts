@@ -8,6 +8,8 @@ import { verifyPassword } from "@/lib/auth/password";
 import {
   SESSION_COOKIE,
   SESSION_COOKIE_OPTIONS,
+  STAFF_HINT_COOKIE,
+  STAFF_HINT_COOKIE_OPTIONS,
   createSessionToken,
 } from "@/lib/auth/session";
 import {
@@ -66,6 +68,7 @@ export async function loginAction(
 
   const store = await cookies();
   store.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  store.set(STAFF_HINT_COOKIE, "1", STAFF_HINT_COOKIE_OPTIONS);
 
   redirect(next?.startsWith("/dashboard") ? next : "/dashboard");
 }
@@ -73,6 +76,7 @@ export async function loginAction(
 export async function logoutAction() {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
+  store.delete(STAFF_HINT_COOKIE);
   redirect("/login");
 }
 
