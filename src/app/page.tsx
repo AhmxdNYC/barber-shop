@@ -8,7 +8,8 @@ import {
 } from "@/lib/shop";
 import { openingHours } from "@/lib/shop/opening-hours";
 import { liveServices } from "@/lib/shop/live-services";
-import { BarberCard } from "@/components/barber-card";
+import { barbersWithPhotos, galleryPhotos } from "@/lib/shop/gallery";
+import { BarberGrid } from "@/components/barber-grid";
 import { ShopMap } from "@/components/shop-map";
 import { ButtonLink } from "@/components/ui/button";
 import { Wordmark } from "@/components/ui/wordmark";
@@ -18,7 +19,12 @@ const todayIndex = () => new Date().getDay();
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [services, hours] = await Promise.all([liveServices(), openingHours()]);
+  const [services, hours, photos] = await Promise.all([
+    liveServices(),
+    openingHours(),
+    galleryPhotos(),
+  ]);
+  const withPhotos = new Set(barbersWithPhotos(photos).map((b) => b.slug));
   const popular = services.filter((s) => s.popular);
   const today = hours[todayIndex()];
 
@@ -105,14 +111,8 @@ export default async function HomePage() {
           </Link>
         </header>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {BARBERS.map((barber) => (
-            <BarberCard
-              key={barber.slug}
-              barber={barber}
-              href={`/book?barber=${barber.slug}`}
-            />
-          ))}
+        <div className="mt-10">
+          <BarberGrid barbersWithWork={withPhotos} />
         </div>
       </section>
 
@@ -226,7 +226,7 @@ export default async function HomePage() {
               <img
                 src={SHOP.storefrontPhoto}
                 alt={`The shopfront at ${SHOP.address.line1} — a green door with a barber pole beside it`}
-                className="h-full w-full object-cover"
+                className="photo-muted h-full w-full object-cover"
                 loading="lazy"
               />
             </div>

@@ -125,11 +125,15 @@
    hover, which flickered every time the pointer crossed the panel. */
 .map-frame iframe {
   /* invert() flips the light map dark; hue-rotate puts the hues back so
-     water still reads as water. Saturation is pulled well down and the
-     sepia is gone — a warm tint was matching the old palette and reads as
-     a stain against neutral greys. */
+     water still reads as water. Saturation is pulled down and the sepia is
+     gone — a warm tint was matching the old palette and reads as a stain
+     against neutral greys.
+
+     Nudged back up slightly to meet the photograph beside it: a fully
+     desaturated map next to a full-colour daylight photograph looked like
+     two different sites sharing a row. */
   filter: invert(0.92) hue-rotate(180deg) brightness(0.88) contrast(0.92)
-    saturate(0.28);
+    saturate(0.34);
 }
 
 .map-frame__tint {
@@ -240,4 +244,19 @@
   border: 1px solid var(--color-line-strong);
   border-radius: 2px;
   padding: 0.45em 0.9em;
+}
+
+
+/* ── photographs ──────────────────────────────────────────────────
+   Daylight photographs are far brighter and more saturated than
+   anything else on a black page, so they are pulled toward the map's
+   register rather than left to shout.
+
+   Deliberately not taken all the way to grey. The storefront exists so
+   someone can recognise a green door with a barber pole beside it, and
+   draining that is the one thing the photograph must not do. Gallery
+   photographs get the same treatment so skin tones stay believable
+   while sitting in the same world as everything else. */
+.photo-muted {
+  filter: saturate(0.62) brightness(0.9) contrast(1.04);
 }

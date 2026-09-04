@@ -56,7 +56,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
               src={photo.src}
               alt={photo.caption || "A cut from the shop"}
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              className="photo-muted h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ground via-ground/70 to-transparent" />
             <span className="absolute inset-x-0 bottom-0 p-3">

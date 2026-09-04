@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { BARBERS } from "@/lib/shop";
 import { barbersWithPhotos, galleryPhotos } from "@/lib/shop/gallery";
-import { BarberCard } from "@/components/barber-card";
+import { BarberGrid } from "@/components/barber-grid";
 
 export const metadata: Metadata = {
   title: "Barbers",
@@ -30,20 +28,8 @@ export default async function BarbersPage() {
         </p>
       </header>
 
-      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {BARBERS.map((barber) => (
-          <div key={barber.slug} className="flex flex-col gap-2">
-            <BarberCard barber={barber} href={`/book?barber=${barber.slug}`} />
-            {withPhotos.has(barber.slug) && (
-              <Link
-                href={`/gallery?barber=${barber.slug}`}
-                className="rounded-[3px] border border-line px-4 py-2.5 text-center text-sm font-semibold text-bone-2 transition-colors hover:border-line-strong hover:text-bone"
-              >
-                See their work
-              </Link>
-            )}
-          </div>
-        ))}
+      <div className="mt-12">
+        <BarberGrid barbersWithWork={withPhotos} />
       </div>
 
       <p className="mt-10 text-sm text-bone-3">
