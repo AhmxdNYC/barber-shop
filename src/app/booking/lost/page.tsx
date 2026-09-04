@@ -10,11 +10,6 @@ export const metadata: Metadata = {
 export default function LostBookingPage() {
   return (
     <div className="mx-auto max-w-md px-5 py-20">
-      <span className="pole-stripe mb-6" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
       <h1 className="font-display text-3xl font-extrabold tracking-tight">
         Lost your link?
       </h1>

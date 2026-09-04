@@ -7,11 +7,6 @@ export function SiteFooter({ hours }: { hours: DayHours[] }) {
     <footer className="border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <span className="pole-stripe mb-4" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
           <Wordmark as="h2" className="text-lg" />
           <p className="mt-2 max-w-[28ch] text-sm text-bone-2">{SHOP.tagline}</p>
         </div>

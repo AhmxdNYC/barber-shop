@@ -28,11 +28,6 @@ export function SiteHeader() {
           className="group flex items-center gap-3"
           onClick={() => setOpen(false)}
         >
-          <span className="pole-stripe flex-col gap-[3px]" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
           <Wordmark className="text-lg" />
         </Link>
 

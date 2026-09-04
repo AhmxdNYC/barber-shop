@@ -31,11 +31,6 @@ export default async function HomePage() {
           className="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-accent/12 blur-[120px]"
         />
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-20 sm:pt-28">
-          <span className="pole-stripe mb-8" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
 
           <Wordmark
             as="h1"

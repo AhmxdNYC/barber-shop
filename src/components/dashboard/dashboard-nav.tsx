@@ -17,11 +17,6 @@ export function DashboardNav({ name }: { name: string }) {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <span className="pole-stripe flex-col gap-[3px]" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
             <span className="font-display text-sm font-extrabold">
               {SHOP.name}
             </span>

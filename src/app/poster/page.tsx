@@ -51,13 +51,8 @@ export default async function PosterPage() {
       </div>
 
       <article className="poster mx-auto w-full max-w-[520px] bg-white px-10 py-12 text-center text-black">
-        <div className="poster__stripe" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
 
-        <h2 className="mt-7 font-display text-4xl font-extrabold leading-tight tracking-tight">
+        <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight">
           {SHOP.name}
         </h2>
 

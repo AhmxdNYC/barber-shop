@@ -24,11 +24,6 @@ export default async function ManageBookingPage({
 
   return (
     <div className="mx-auto max-w-lg px-5 py-16">
-      <span className="pole-stripe mb-6" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
       <ManageBooking booking={booking} token={token} shopPhone={SHOP.phone} />
     </div>
   );

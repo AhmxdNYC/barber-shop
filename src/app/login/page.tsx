@@ -24,11 +24,6 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto flex max-w-md flex-col justify-center px-5 py-24">
-      <span className="pole-stripe mb-6" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
       <h1 className="font-display text-3xl font-extrabold tracking-tight">
         Barber sign in
       </h1>
