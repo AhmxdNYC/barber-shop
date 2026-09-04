@@ -9,6 +9,7 @@ import {
   formatHours,
 } from "@/lib/shop";
 import { BarberCard } from "@/components/barber-card";
+import { ShopMap } from "@/components/shop-map";
 
 const todayIndex = () => new Date().getDay();
 
@@ -218,7 +219,8 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="eyebrow">Hours</h3>
+            <ShopMap />
+            <h3 className="eyebrow mt-10 block">Hours</h3>
             <ul className="mt-5 divide-y divide-line border-y border-line">
               {HOURS.map((d, i) => {
                 const isToday = i === todayIndex();

@@ -9,16 +9,22 @@
 export const SHOP = {
   name: "Eduardo Barbershop",
   tagline: "One chair. No rush. Book the time, get the cut.",
-  phone: "(718) 555-0142",
-  email: "hello@eduardobarbershop.com",
+  phone: "(914) 476-5347",
+  email: "hello@eduardobarbershop.com", // TODO: confirm — not listed publicly
   address: {
-    line1: "212 Grand Street",
-    city: "Brooklyn",
+    line1: "57 Park Hill Avenue",
+    city: "Yonkers",
     state: "NY",
-    postalCode: "11211",
+    postalCode: "10701",
   },
-  instagram: "https://instagram.com",
-  mapUrl: "https://maps.google.com",
+  /** Exact pin from the shop's Google Maps listing. */
+  coords: { lat: 40.9291924, lng: -73.8931055 },
+  instagram: "https://instagram.com", // TODO: real handle
+  mapUrl:
+    "https://www.google.com/maps/place/Eduardo+Barber+Shop/@40.9290585,-73.8956612,17z/data=!4m6!3m5!1s0x89c2f26339d19203:0x24a11027237559b6!8m2!3d40.9291924!4d-73.8931055!16s%2Fg%2F1tghf20g",
+  /** The shop already takes bookings here — see docs/BOOKING-PROVIDERS.md. */
+  freshaUrl:
+    "https://www.fresha.com/lvp/eduardo-barber-shop-park-hill-avenue-yonkers-wr8LbX",
   /** Deposit taken at booking; the balance is paid in the shop. */
   depositCents: 1000,
 } as const;
@@ -159,13 +165,14 @@ export type DayHours = {
 
 /** Index 0 is Sunday, matching JavaScript's getDay(). */
 export const HOURS: DayHours[] = [
-  { day: "Sunday", short: "Sun", opens: 11 * 60, closes: 16 * 60 },
-  { day: "Monday", short: "Mon", opens: null, closes: null },
-  { day: "Tuesday", short: "Tue", opens: 10 * 60, closes: 19 * 60 },
-  { day: "Wednesday", short: "Wed", opens: 10 * 60, closes: 19 * 60 },
-  { day: "Thursday", short: "Thu", opens: 10 * 60, closes: 20 * 60 },
-  { day: "Friday", short: "Fri", opens: 10 * 60, closes: 20 * 60 },
-  { day: "Saturday", short: "Sat", opens: 9 * 60, closes: 18 * 60 },
+  // TODO: Sunday's closing time is not listed publicly — confirm with the shop.
+  { day: "Sunday", short: "Sun", opens: 10 * 60 + 30, closes: 17 * 60 },
+  { day: "Monday", short: "Mon", opens: 10 * 60 + 30, closes: 19 * 60 + 30 },
+  { day: "Tuesday", short: "Tue", opens: 10 * 60 + 30, closes: 19 * 60 + 30 },
+  { day: "Wednesday", short: "Wed", opens: 10 * 60 + 30, closes: 19 * 60 + 30 },
+  { day: "Thursday", short: "Thu", opens: 10 * 60 + 30, closes: 19 * 60 + 30 },
+  { day: "Friday", short: "Fri", opens: 10 * 60 + 30, closes: 19 * 60 + 30 },
+  { day: "Saturday", short: "Sat", opens: 10 * 60, closes: 19 * 60 + 30 },
 ];
 
 /* ── formatting ────────────────────────────────────────────────── */

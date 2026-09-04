@@ -9,6 +9,25 @@ adapter. **The UI does not change.**
 > detail most likely to have moved. Verify on each vendor's pricing page before
 > committing — especially the staff caps, since this shop has four chairs.
 
+## Start here: the shop is already on Fresha
+
+Eduardo Barber Shop already has a live Fresha booking page:
+
+    https://www.fresha.com/lvp/eduardo-barber-shop-park-hill-avenue-yonkers-wr8LbX
+
+That changes the cheapest path from "sign up for something" to "point at what
+already exists." Two environment variables make our booking page real today,
+for nothing, using the calendar the shop already keeps:
+
+```bash
+NEXT_PUBLIC_BOOKING_PROVIDER=hosted
+NEXT_PUBLIC_BOOKING_URL=https://www.fresha.com/lvp/eduardo-barber-shop-park-hill-avenue-yonkers-wr8LbX
+NEXT_PUBLIC_BOOKING_LABEL=Fresha
+```
+
+Worth confirming with the shop before flipping it — they may or may not want
+the website funnelling into Fresha rather than a system we control.
+
 ## The three routes
 
 ### 1. Hand off to a hosted system — cheapest and fastest
