@@ -52,11 +52,30 @@ export default async function HomePage() {
             {SHOP.tagline}
           </p>
 
+          {/*
+            Three ways in, deliberately unequal. Booking is the thing the
+            page exists for and gets the solid button. "See the work" is the
+            question a client actually asks before choosing a person — is
+            this shop any good — so it gets the outline. Picking a barber
+            comes after both and is a plain link.
+
+            The gallery link only appears when there are photographs; a
+            prominent button leading to an empty page is worse than no
+            button.
+          */}
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
             <ButtonLink href="/book">Book a chair</ButtonLink>
-            <ButtonLink href="/barbers" variant="outline">
-              Pick your barber
-            </ButtonLink>
+            {photos.length > 0 && (
+              <ButtonLink href="/gallery" variant="outline">
+                See the work
+              </ButtonLink>
+            )}
+            <Link
+              href="/barbers"
+              className="text-center text-sm font-semibold text-bone-2 transition-colors hover:text-bone sm:ml-2"
+            >
+              Pick your barber &rarr;
+            </Link>
           </div>
 
           <p className="mt-4 text-sm text-bone-3">
