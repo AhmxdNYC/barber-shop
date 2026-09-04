@@ -46,12 +46,19 @@ export function SiteHeader() {
               </Link>
             );
           })}
-          {isStaff && (
+          {isStaff ? (
             <Link
               href="/dashboard"
               className="rounded-[3px] border border-brass px-4 py-2 text-sm font-semibold text-brass transition-colors hover:bg-brass-dim"
             >
               Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm text-bone-3 transition-colors hover:text-bone"
+            >
+              Barber login
             </Link>
           )}
           <Link
@@ -101,13 +108,21 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          {isStaff && (
+          {isStaff ? (
             <Link
               href="/dashboard"
               onClick={() => setOpen(false)}
               className="mt-3 block rounded-[3px] border border-brass px-4 py-3 text-center font-semibold text-brass"
             >
               Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="mt-3 block py-2 text-center text-sm text-bone-3"
+            >
+              Barber login
             </Link>
           )}
           <Link
