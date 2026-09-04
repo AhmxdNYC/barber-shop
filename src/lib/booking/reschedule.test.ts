@@ -33,6 +33,7 @@ suite("rescheduleAppointment", () => {
       start: slots[0].start.toISOString(),
       name: "Reschedule Test",
       email: EMAIL,
+      phone: "914-555-0100",
     });
     const saved = await prisma.appointment.findFirst();
     return { result, saved: saved!, slots };

@@ -31,7 +31,7 @@ export type CreateAppointmentInput = {
   start: string;
   name: string;
   email: string;
-  phone?: string;
+  phone: string;
   notes?: string;
   source?: "ONLINE" | "WALK_IN" | "PHONE";
   /** Barber-made bookings skip the lead-time rule. */

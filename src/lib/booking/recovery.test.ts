@@ -31,6 +31,7 @@ suite("lost link recovery", () => {
       start: slots[0].start.toISOString(),
       name: "Recover Test",
       email: EMAIL,
+      phone: "914-555-0100",
     });
   }
 

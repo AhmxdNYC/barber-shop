@@ -130,7 +130,8 @@ export default async function DashboardPage({
           <div>
             <h2 className="font-display text-xl font-bold">The day</h2>
             <p className="mt-0.5 text-sm text-bone-3">
-              Tap an appointment to mark it done, move it, or cancel it.
+              Tap an appointment to manage it. Drag down an empty column to
+              block out time.
             </p>
           </div>
           <WalkInForm defaultStart={defaultWalkInStart(date, timeZone)} />
@@ -143,6 +144,7 @@ export default async function DashboardPage({
             isToday={isToday}
             appointments={sheetData}
             rescheduleDays={nextDays()}
+            date={dateKeyFor(date, timeZone)}
           />
         </div>
       </section>
@@ -214,6 +216,13 @@ function shift(date: Date, days: number): string {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return `/dashboard?date=${d.toISOString().slice(0, 10)}`;
+}
+
+/** "YYYY-MM-DD" for the day being viewed, in the shop's timezone. */
+function dateKeyFor(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(date);
 }
 
 /** Minutes from midnight right now, shop-local. */

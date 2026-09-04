@@ -111,7 +111,7 @@ export function WalkInForm({ defaultStart }: { defaultStart: string }) {
         </Field>
 
         <Field label="Phone">
-          <input type="tel" name="phone" className={INPUT} placeholder="Optional" />
+          <input type="tel" name="phone" className={INPUT} required placeholder="In case you need to call" />
         </Field>
       </div>
 

@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { minutesToTimeInput } from "@/lib/shop";
 import { AppointmentSheet, type SheetAppointment } from "./appointment-sheet";
+import {
+  DragPreview,
+  DragToBlockDialog,
+  useColumnDrag,
+  type DragRange,
+} from "./drag-to-block";
 import type { BarberDay, ScheduleBlock } from "@/lib/dashboard/day-schedule";
 
 /**
@@ -30,6 +36,7 @@ export function DayCalendar({
   isToday,
   appointments,
   rescheduleDays,
+  date,
 }: {
   days: BarberDay[];
   nowMinutes: number;
@@ -37,9 +44,48 @@ export function DayCalendar({
   /** Detail for each appointment block, keyed by id. */
   appointments: Record<string, SheetAppointment>;
   rescheduleDays: { date: string; weekday: string; dayNum: string }[];
+  /** The day being viewed, "YYYY-MM-DD", for blocks dragged out. */
+  date: string;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [proposed, setProposed] = useState<DragRange | null>(null);
   const open = days.filter((d) => !d.isClosed);
+
+  // One shared vertical scale, so columns line up across chairs. Computed
+  // before any early return, because the drag hook below depends on it and
+  // hooks cannot run conditionally.
+  const from = open.length
+    ? Math.floor(Math.min(...open.map((d) => d.opensAtMinutes)) / 60) * 60
+    : 0;
+  const to = open.length
+    ? Math.ceil(Math.max(...open.map((d) => d.closesAtMinutes)) / 60) * 60
+    : 0;
+  const height = (to - from) * PX_PER_MINUTE;
+
+  const hourMarks: number[] = [];
+  for (let m = from; m <= to; m += 60) hourMarks.push(m);
+
+  const nameFor = (barberId: string) =>
+    days.find((d) => d.barberId === barberId)?.barberName ?? "";
+
+  const { drag, handlers } = useColumnDrag({
+    pxPerMinute: PX_PER_MINUTE,
+    fromMinutes: from,
+    onComplete: (barberId, startMinutes, endMinutes) =>
+      setProposed({
+        barberId,
+        barberName: nameFor(barberId),
+        startMinutes,
+        endMinutes,
+      }),
+  });
+
+  const dragHandlers = (barberId: string) => ({
+    onPointerDown: handlers.onPointerDown(barberId),
+    onPointerMove: handlers.onPointerMove,
+    onPointerUp: handlers.onPointerUp,
+    onPointerCancel: handlers.onPointerCancel,
+  });
 
   if (open.length === 0) {
     return (
@@ -48,14 +94,6 @@ export function DayCalendar({
       </p>
     );
   }
-
-  // One shared vertical scale, so columns line up across chairs.
-  const from = Math.floor(Math.min(...open.map((d) => d.opensAtMinutes)) / 60) * 60;
-  const to = Math.ceil(Math.max(...open.map((d) => d.closesAtMinutes)) / 60) * 60;
-  const height = (to - from) * PX_PER_MINUTE;
-
-  const hourMarks: number[] = [];
-  for (let m = from; m <= to; m += 60) hourMarks.push(m);
 
   return (
     <div className="overflow-x-auto rounded-[3px] border border-line bg-surface">
@@ -82,7 +120,11 @@ export function DayCalendar({
               {day.isClosed && <span className="ml-2 text-xs text-bone-3">off</span>}
             </h3>
 
-            <div className="relative" style={{ height }}>
+            <div
+              className="relative touch-pan-y select-none"
+              style={{ height }}
+              {...dragHandlers(day.barberId)}
+            >
               {hourMarks.map((m) => (
                 <div
                   key={m}
@@ -116,6 +158,15 @@ export function DayCalendar({
                 />
               ))}
 
+              {drag?.barberId === day.barberId && (
+                <DragPreview
+                  topPx={(Math.min(drag.anchor, drag.current) - from) * PX_PER_MINUTE}
+                  heightPx={Math.abs(drag.current - drag.anchor) * PX_PER_MINUTE}
+                  startMinutes={Math.min(drag.anchor, drag.current)}
+                  endMinutes={Math.max(drag.anchor, drag.current)}
+                />
+              )}
+
               {isToday && nowMinutes >= from && nowMinutes <= to && (
                 <div
                   className="absolute inset-x-0 z-20 border-t-2 border-accent"
@@ -128,6 +179,14 @@ export function DayCalendar({
           </div>
         ))}
       </div>
+
+      {proposed && (
+        <DragToBlockDialog
+          range={proposed}
+          date={date}
+          onClose={() => setProposed(null)}
+        />
+      )}
 
       {selected && appointments[selected] && (
         <AppointmentSheet
@@ -184,6 +243,7 @@ function Block({
 
   return (
     <Tag
+      data-block={onSelect ? "appointment" : "static"}
       type={onSelect ? "button" : undefined}
       onClick={onSelect}
       className={className}

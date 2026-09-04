@@ -37,6 +37,7 @@ suite("notification outbox", () => {
       start: slots[0].start.toISOString(),
       name: "Notify Test",
       email: EMAIL,
+      phone: "914-555-0100",
     });
   }
 

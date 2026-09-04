@@ -133,7 +133,7 @@ const WalkInInput = z.object({
   start: z.string().min(10).max(30),
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(200),
-  phone: z.string().trim().max(40).optional(),
+  phone: z.string().trim().min(7, "Add a phone number").max(40),
   source: z.enum(["WALK_IN", "PHONE"]),
 });
 

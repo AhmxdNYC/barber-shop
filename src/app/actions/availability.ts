@@ -269,3 +269,74 @@ export async function saveShopHoursAction(
   revalidatePath("/", "layout");
   return { ok: isClosed ? "Marked closed." : "Shop hours saved." };
 }
+
+
+/**
+ * Blocks out a range dragged on the calendar.
+ *
+ * Takes shop-local minutes and the date being viewed, because that is what
+ * the calendar knows — it lays out a day in minutes from midnight and has no
+ * business constructing UTC instants.
+ */
+const DragBlockInput = z.object({
+  barberId: z.string().min(1).max(40),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startMinutes: z.coerce.number().int().min(0).max(24 * 60),
+  endMinutes: z.coerce.number().int().min(0).max(24 * 60),
+  reason: z.string().trim().max(200).optional(),
+});
+
+export async function blockTimeFromCalendarAction(
+  _previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireBarber();
+
+  const parsed = DragBlockInput.safeParse({
+    barberId: formData.get("barberId"),
+    date: formData.get("date"),
+    startMinutes: formData.get("startMinutes"),
+    endMinutes: formData.get("endMinutes"),
+    reason: formData.get("reason") || undefined,
+  });
+  if (!parsed.success) return { error: "That block is not valid." };
+
+  const { barberId, date, startMinutes, endMinutes, reason } = parsed.data;
+  if (endMinutes <= startMinutes) {
+    return { error: "Drag downwards to set a length." };
+  }
+
+  const timeZone = await shopTimezone();
+  const toInstant = (minutes: number) =>
+    fromZonedTime(
+      `${date}T${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:00`,
+      timeZone,
+    );
+
+  const startsAt = toInstant(startMinutes);
+  const endsAt = toInstant(endMinutes);
+
+  // Existing bookings are never cancelled by blocking time — the barber is
+  // told and decides. Silently dropping someone's haircut is worse than the
+  // clash.
+  const clashes = await prisma.appointment.count({
+    where: {
+      barberId,
+      status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+      startsAt: { lt: endsAt },
+      endsAt: { gt: startsAt },
+    },
+  });
+
+  await prisma.timeOff.create({
+    data: { barberId, startsAt, endsAt, reason: reason || null },
+  });
+
+  revalidatePath("/dashboard");
+  return {
+    ok:
+      clashes > 0
+        ? `Blocked — but ${clashes} appointment${clashes === 1 ? " is" : "s are"} already booked in that time.`
+        : "Blocked out.",
+  };
+}

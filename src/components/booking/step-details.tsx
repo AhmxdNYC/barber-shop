@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { SHOP, formatPrice, getBarber, type Service } from "@/lib/shop";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/text-field";
+import { contactErrors } from "@/lib/booking/contact";
 import type { TimeSlot } from "@/lib/booking";
 import type { CalendarDay, ContactForm } from "./types";
 
@@ -28,13 +30,18 @@ export function StepDetails({
   onSubmit: () => void;
 }) {
   const barber = barberSlug ? getBarber(barberSlug) : undefined;
-  const set = (key: keyof ContactForm) => (value: string) =>
+  const set = (key: keyof ContactForm) => (value: string) => {
+    setTouched((t) => ({ ...t, [key]: true }));
     onChange({ ...form, [key]: value });
+  };
 
-  // Deliberately permissive: a stricter pattern rejects valid addresses, and
-  // the real check is whether the confirmation email arrives.
-  const emailLooksValid = /.+@.+\..+/.test(form.email);
-  const canSubmit = form.name.trim().length > 1 && emailLooksValid && !submitting;
+  const errors = contactErrors(form);
+  const canSubmit = Object.keys(errors).length === 0 && !submitting;
+
+  /** Only complain about a field once it has been filled in and left. */
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const errorFor = (field: "name" | "email" | "phone") =>
+    touched[field] ? errors[field] : undefined;
 
   return (
     <section>
@@ -67,9 +74,32 @@ export function StepDetails({
       </div>
 
       <div className="mt-6 grid gap-4">
-        <TextField label="Name" value={form.name} onChange={set("name")} placeholder="Your name" autoComplete="name" />
-        <TextField label="Email" type="email" value={form.email} onChange={set("email")} placeholder="you@example.com" autoComplete="email" />
-        <TextField label="Phone" type="tel" value={form.phone} onChange={set("phone")} placeholder={SHOP.phone} autoComplete="tel" optional />
+        <TextField
+          label="Name"
+          value={form.name}
+          onChange={set("name")}
+          placeholder="Your name"
+          autoComplete="name"
+          error={errorFor("name")}
+        />
+        <TextField
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={set("email")}
+          placeholder="you@example.com"
+          autoComplete="email"
+          error={errorFor("email")}
+        />
+        <TextField
+          label="Phone"
+          type="tel"
+          value={form.phone}
+          onChange={set("phone")}
+          placeholder={SHOP.phone}
+          autoComplete="tel"
+          error={errorFor("phone")}
+        />
         <TextField
           label="Anything we should know?"
           value={form.notes}
@@ -78,6 +108,11 @@ export function StepDetails({
           optional
         />
       </div>
+
+      <p className="mt-3 text-sm text-bone-3">
+        We ask for a number so the shop can reach you if anything changes on
+        the day.
+      </p>
 
       <p className="mt-5 text-sm text-bone-3">
         A {formatPrice(SHOP.depositCents)} deposit holds the slot; the rest is

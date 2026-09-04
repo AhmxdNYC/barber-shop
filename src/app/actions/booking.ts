@@ -53,7 +53,14 @@ const BookingInput = z.object({
   start: z.string().min(1).max(40),
   name: z.string().trim().min(2, "Tell us your name").max(120),
   email: z.string().trim().email("That email does not look right").max(200),
-  phone: z.string().trim().max(40).optional(),
+  // Required: the shop runs on phone calls, and a booking it cannot ring
+  // about is one the barber cannot manage.
+  phone: z
+    .string()
+    .trim()
+    .min(7, "We need a phone number")
+    .max(40)
+    .refine((v) => v.replace(/\D/g, "").length >= 7, "That doesn't look like a phone number"),
   notes: z.string().trim().max(1000).optional(),
 });
 

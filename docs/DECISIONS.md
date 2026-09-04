@@ -373,6 +373,32 @@ Two deliberate restraints. A single visit is not a rhythm, so no cadence is
 claimed from one. And there is a tolerance before anyone is called overdue,
 because a few days late is normal and a page that cries wolf gets ignored.
 
+### Phone is required, email and name too
+
+Every required field loses bookings, so each one has to earn its place. This
+shop runs on phone calls: if the barber is forty minutes behind, or has to
+move someone, he rings them. A booking he cannot ring about is a booking he
+cannot manage — and handing over a number to book a haircut is not something
+anyone objects to.
+
+Validation is deliberately loose — seven to fifteen digits, no country
+assumption. A stricter pattern rejects real numbers, and the genuine test is
+whether the barber can ring it. Errors appear per field and only once a field
+has been touched, so the form does not shout at someone halfway through
+typing.
+
+### Dragging the calendar blocks time; it does not move appointments
+
+Dragging an empty column proposes a block, and the block is only created
+after a confirmation. On a phone a stray touch while scrolling would
+otherwise close the shop for an afternoon silently, and the barber would find
+out when a client could not book.
+
+Appointments are deliberately *not* draggable. Moving a client's booking with
+an accidental swipe is a much worse failure than any convenience it buys, and
+moving one already has a safer path: tap it, pick a time, and the client is
+emailed. A drag has no natural place to tell them.
+
 ### Revenue counts only completed work
 
 Booked revenue would flatter every figure on the page. The first time a
