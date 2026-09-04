@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/shop";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { AppointmentRow } from "@/components/dashboard/appointment-row";
 import { WalkInForm } from "@/components/dashboard/walk-in-form";
+import { DayCalendar } from "@/components/dashboard/day-calendar";
+import { scheduleForDay, upcomingTimeOff } from "@/lib/dashboard/day-schedule";
 
 /**
  * The day view — the only screen a working barber has time to look at.
@@ -20,13 +22,24 @@ export default async function DashboardPage({
   const { date: dateParam } = await searchParams;
   const date = dateParam ? new Date(`${dateParam}T12:00:00`) : new Date();
 
-  const [appointments, stats, settings] = await Promise.all([
+  const settings = await prisma.shopSettings.findUnique({ where: { id: 1 } });
+  const timeZone = settings?.timezone ?? "America/New_York";
+
+  const [appointments, stats, schedule, timeOff] = await Promise.all([
     appointmentsForDay(date),
     dayStats(date),
-    prisma.shopSettings.findUnique({ where: { id: 1 } }),
+    scheduleForDay(date, timeZone),
+    upcomingTimeOff(),
   ]);
 
-  const timeZone = settings?.timezone ?? "America/New_York";
+  const todayIso = new Date().toDateString();
+  const isToday = date.toDateString() === todayIso;
+  const nowParts = new Intl.DateTimeFormat("en-US", {
+    timeZone, hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(new Date());
+  const nowMinutes =
+    Number(nowParts.find((p) => p.type === "hour")?.value ?? 0) * 60 +
+    Number(nowParts.find((p) => p.type === "minute")?.value ?? 0);
   const heading = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -79,9 +92,22 @@ export default async function DashboardPage({
 
       <section className="mt-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-xl font-bold">The day</h2>
+          <div>
+            <h2 className="font-display text-xl font-bold">The day</h2>
+            <p className="mt-0.5 text-sm text-bone-3">
+              Gaps are free time. Tap a name below to mark it done.
+            </p>
+          </div>
           <WalkInForm defaultStart={defaultWalkInStart(date, timeZone)} />
         </div>
+
+        <div className="mt-4">
+          <DayCalendar days={schedule} nowMinutes={nowMinutes} isToday={isToday} />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Appointments</h2>
         {appointments.length === 0 ? (
           <p className="mt-4 rounded-[3px] border border-line bg-surface p-8 text-center text-bone-2">
             Nothing booked. Walk-ins welcome.
@@ -98,6 +124,34 @@ export default async function DashboardPage({
           </ul>
         )}
       </section>
+      {timeOff.length > 0 && (
+        <section className="mt-12">
+          <h2 className="font-display text-xl font-bold">Time off coming up</h2>
+          <ul className="mt-4 divide-y divide-line rounded-[3px] border border-line">
+            {timeOff.map((t) => (
+              <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 bg-surface px-4 py-3 text-sm">
+                <span className="font-semibold">{t.barber.name}</span>
+                <span className="tabular-nums text-bone-2">
+                  {new Intl.DateTimeFormat("en-US", {
+                    timeZone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+                  }).format(t.startsAt)}
+                  {" – "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    timeZone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+                  }).format(t.endsAt)}
+                </span>
+                <span className="text-bone-3">{t.reason ?? "Time off"}</span>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/dashboard/availability"
+            className="mt-3 inline-block text-sm text-bone-2 hover:text-bone"
+          >
+            Schedule more time off &rarr;
+          </Link>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
 import { SHOP, ADDRESS_LINE } from "@/lib/shop";
+import { openingHours } from "@/lib/shop/opening-hours";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
@@ -41,17 +42,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+/**
+ * Revalidated hourly so edited hours reach the public site without making
+ * every page dynamic. Saving hours also revalidates immediately, so the
+ * hour is a ceiling, not a delay anyone normally sees.
+ */
+export const revalidate = 3600;
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const hours = await openingHours();
+
   return (
     <html lang="en" className={`${bricolage.variable} ${publicSans.variable}`}>
       <body className="min-h-screen flex flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <SiteFooter hours={hours} />
       </body>
     </html>
   );

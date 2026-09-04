@@ -14,18 +14,22 @@ import { SignJWT, jwtVerify } from "jose";
 export const SESSION_COOKIE = "barbershop_session";
 
 /**
- * Thirty days, refreshed on every dashboard visit.
+ * A year, refreshed on every visit.
  *
- * The original twelve hours meant the barber typed a password every single
- * morning, which is exactly the kind of friction that ends with him not
- * opening the app. A rolling month means he signs in about as often as he
- * changes his phone, and stays signed in as long as he keeps using it.
+ * This started at twelve hours, which meant signing in every morning, then a
+ * month, which still meant an unexpected sign-in screen a few times a year —
+ * always at the worst moment, mid-shift with someone in the chair.
  *
- * The trade is that a lost phone stays signed in until the cookie expires
- * or the secret is rotated. For a dashboard on a barber's own phone that is
- * the right balance; "Sign out" is there when it is not.
+ * Rolling means the clock resets every time he opens it, so in practice he
+ * signs in once per device and never again. A barber's phone is a personal
+ * device he has on him all day; treating it like a shared terminal buys no
+ * security and costs the thing that decides whether he uses the app at all.
+ *
+ * The real risk is a lost phone, and a shorter expiry is a poor answer to
+ * that anyway — it would still be signed in for weeks. Sign out from the
+ * device, or rotate AUTH_SECRET to end every session everywhere.
  */
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 export type SessionPayload = {
   userId: string;

@@ -3,20 +3,23 @@ import {
   SHOP,
   SERVICES,
   BARBERS,
-  HOURS,
   formatPrice,
   formatDuration,
   formatHours,
 } from "@/lib/shop";
+import { openingHours } from "@/lib/shop/opening-hours";
 import { BarberCard } from "@/components/barber-card";
 import { ShopMap } from "@/components/shop-map";
 import { ButtonLink } from "@/components/ui/button";
 
 const todayIndex = () => new Date().getDay();
 
-export default function HomePage() {
+export const revalidate = 3600;
+
+export default async function HomePage() {
   const popular = SERVICES.filter((s) => s.popular);
-  const today = HOURS[todayIndex()];
+  const hours = await openingHours();
+  const today = hours[todayIndex()];
 
   return (
     <>
@@ -215,7 +218,7 @@ export default function HomePage() {
             <ShopMap />
             <h3 className="eyebrow mt-10 block">Hours</h3>
             <ul className="mt-5 divide-y divide-line border-y border-line">
-              {HOURS.map((d, i) => {
+              {hours.map((d, i) => {
                 const isToday = i === todayIndex();
                 return (
                   <li

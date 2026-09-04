@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { SHOP, HOURS, formatHours, ADDRESS_LINE } from "@/lib/shop";
+import { SHOP, formatHours, ADDRESS_LINE, type DayHours } from "@/lib/shop";
 
-export function SiteFooter() {
+export function SiteFooter({ hours }: { hours: DayHours[] }) {
   return (
     <footer className="border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -18,7 +18,7 @@ export function SiteFooter() {
         <div>
           <h4 className="eyebrow">Hours</h4>
           <ul className="mt-4 space-y-1.5 text-sm">
-            {HOURS.map((d) => (
+            {hours.map((d) => (
               <li key={d.day} className="flex justify-between gap-4 text-bone-2">
                 <span>{d.short}</span>
                 <span

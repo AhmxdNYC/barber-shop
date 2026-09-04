@@ -78,7 +78,10 @@ export async function saveWorkingHoursAction(
   });
 
   revalidatePath("/dashboard/availability");
-  return { ok: "Hours saved." };
+  // The public site advertises these, so refresh it now rather than waiting
+  // for the hourly revalidation.
+  revalidatePath("/", "layout");
+  return { ok: "Hours saved. The website is updated." };
 }
 
 /* ── time off ──────────────────────────────────────────────────── */
