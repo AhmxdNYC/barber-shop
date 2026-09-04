@@ -19,6 +19,11 @@ export const SHOP = {
   },
   /** Exact pin from the shop's Google Maps listing. */
   coords: { lat: 40.9291924, lng: -73.8931055 },
+  /**
+   * The business name exactly as Google lists it, so the map embed
+   * resolves to the real listing and labels the pin.
+   */
+  mapQuery: "Eduardo Barber Shop, 57 Park Hill Ave, Yonkers, NY 10701",
   instagram: "https://instagram.com", // TODO: real handle
   mapUrl:
     "https://www.google.com/maps/place/Eduardo+Barber+Shop/@40.9290585,-73.8956612,17z/data=!4m6!3m5!1s0x89c2f26339d19203:0x24a11027237559b6!8m2!3d40.9291924!4d-73.8931055!16s%2Fg%2F1tghf20g",
