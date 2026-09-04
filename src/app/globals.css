@@ -107,3 +107,30 @@
   }
 }
 
+
+/* ── map ──────────────────────────────────────────────────────────
+   Google's embed is cross-origin and light-only, so it is darkened
+   from the outside. invert() flips it dark; hue-rotate(180deg) puts
+   the hues back so water reads blue and parks read green. The rest
+   pulls it toward the shop's warm palette instead of the cold
+   blue-grey a raw inversion leaves behind.
+
+   The filter is constant. An earlier version revealed true colour on
+   hover, which flickered every time the pointer crossed the panel. */
+.map-frame iframe {
+  filter: invert(0.91) hue-rotate(180deg) brightness(0.92) contrast(0.94)
+    saturate(0.62) sepia(0.12);
+}
+
+.map-frame__tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-ground) 45%, transparent) 0%,
+    transparent 24%,
+    transparent 76%,
+    color-mix(in srgb, var(--color-ground) 32%, transparent) 100%
+  );
+}
