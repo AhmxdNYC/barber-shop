@@ -11,6 +11,7 @@ import { liveServices } from "@/lib/shop/live-services";
 import { BarberCard } from "@/components/barber-card";
 import { ShopMap } from "@/components/shop-map";
 import { ButtonLink } from "@/components/ui/button";
+import { Wordmark } from "@/components/ui/wordmark";
 
 const todayIndex = () => new Date().getDay();
 
@@ -36,9 +37,10 @@ export default async function HomePage() {
             <i />
           </span>
 
-          <h1 className="max-w-4xl font-display text-5xl font-extrabold leading-[0.95] tracking-[-0.035em] sm:text-7xl lg:text-8xl">
-            {SHOP.name}
-          </h1>
+          <Wordmark
+            as="h1"
+            className="block max-w-4xl text-6xl leading-[1.05] sm:text-8xl lg:text-9xl"
+          />
 
           <p className="mt-7 max-w-xl text-lg leading-relaxed text-bone-2 sm:text-xl">
             {SHOP.tagline}
@@ -213,7 +215,7 @@ export default async function HomePage() {
               </a>
             </div>
 
-            <h3 className="eyebrow mt-12 block">Hours</h3>
+            <h3 className="eyebrow mt-12 block">Shop hours</h3>
             <ul className="mt-5 divide-y divide-line border-y border-line">
               {hours.map((d, i) => {
                 const isToday = i === todayIndex();

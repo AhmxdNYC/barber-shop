@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
+import { Bodoni_Moda, Bricolage_Grotesque, Public_Sans } from "next/font/google";
 import { SHOP, ADDRESS_LINE } from "@/lib/shop";
 import { openingHours } from "@/lib/shop/opening-hours";
 import { SiteHeader } from "@/components/site-header";
@@ -17,6 +17,20 @@ const publicSans = Public_Sans({
   subsets: ["latin"],
   variable: "--font-public-sans",
   weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+/**
+ * The wordmark face.
+ *
+ * A high-contrast serif, because that is what painted shop signage actually
+ * is — the real sign above the door is white serif capitals on green. Loaded
+ * only in the weights the wordmark uses.
+ */
+const bodoni = Bodoni_Moda({
+  subsets: ["latin"],
+  variable: "--font-bodoni",
+  weight: ["700"],
   display: "swap",
 });
 
@@ -57,7 +71,7 @@ export default async function RootLayout({
   const hours = await openingHours();
 
   return (
-    <html lang="en" className={`${bricolage.variable} ${publicSans.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${publicSans.variable} ${bodoni.variable}`}>
       <body className="min-h-screen flex flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>

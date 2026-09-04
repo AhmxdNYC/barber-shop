@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SHOP, formatHours, ADDRESS_LINE, type DayHours } from "@/lib/shop";
+import { Wordmark } from "@/components/ui/wordmark";
 
 export function SiteFooter({ hours }: { hours: DayHours[] }) {
   return (
@@ -11,12 +12,12 @@ export function SiteFooter({ hours }: { hours: DayHours[] }) {
             <i />
             <i />
           </span>
-          <h3 className="font-display text-lg font-extrabold">{SHOP.name}</h3>
+          <Wordmark as="h2" className="text-lg" />
           <p className="mt-2 max-w-[28ch] text-sm text-bone-2">{SHOP.tagline}</p>
         </div>
 
         <div>
-          <h4 className="eyebrow">Hours</h4>
+          <h4 className="eyebrow">Shop hours</h4>
           <ul className="mt-4 space-y-1.5 text-sm">
             {hours.map((d) => (
               <li key={d.day} className="flex justify-between gap-4 text-bone-2">

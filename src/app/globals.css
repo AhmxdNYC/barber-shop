@@ -23,7 +23,14 @@
   --color-brass: #c9a25e;
   --color-brass-dim: #33291a;
 
+  /* The shop's own green — the door, the window frames, the sign board. */
+  --color-shopgreen: #2e4a3c;
+  --color-shopgreen-deep: #22382e;
+
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  /* Only the wordmark uses this — a high-contrast serif is what traditional
+     painted shop signage actually looks like. */
+  --font-wordmark: var(--font-bodoni), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 3px;
@@ -208,4 +215,44 @@
   display: block;
   width: 180px;
   height: 180px;
+}
+
+
+/* ── wordmark ─────────────────────────────────────────────────────
+   The shop's sign is white serif capitals on a dark green board. The
+   outline is what gives painted signage its weight, and `paint-order`
+   is what makes an outline sit *behind* the letterforms rather than
+   eating into them — without it the strokes thicken and the counters
+   close up at small sizes. */
+.wordmark {
+  font-family: var(--font-wordmark);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  paint-order: stroke fill;
+  -webkit-text-stroke-width: 0.06em;
+  white-space: nowrap;
+}
+
+/* On the dark site: bone letters, edged in the shop's green. */
+.wordmark--light {
+  color: var(--color-bone);
+  -webkit-text-stroke-color: var(--color-shopgreen-deep);
+}
+
+/* On paper and the poster, where the ground is white. */
+.wordmark--dark {
+  color: var(--color-shopgreen-deep);
+  -webkit-text-stroke-color: transparent;
+}
+
+/* The sign board itself, for places with room for it. */
+.wordmark-plaque {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-shopgreen-deep);
+  border: 1px solid color-mix(in srgb, var(--color-brass) 40%, transparent);
+  border-radius: 2px;
+  padding: 0.45em 0.9em;
 }

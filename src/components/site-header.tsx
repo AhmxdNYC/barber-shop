@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { SHOP } from "@/lib/shop";
 import { useStaffHint } from "@/lib/auth/use-staff-hint";
+import { Wordmark } from "@/components/ui/wordmark";
 
 const NAV = [
   { href: "/services", label: "Services" },
@@ -33,9 +33,7 @@ export function SiteHeader() {
             <i />
             <i />
           </span>
-          <span className="font-display text-lg font-extrabold tracking-tight">
-            {SHOP.name}
-          </span>
+          <Wordmark className="text-lg" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
