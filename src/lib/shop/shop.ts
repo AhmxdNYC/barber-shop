@@ -31,6 +31,16 @@ export const SHOP = {
    */
   storefrontPhoto: "/storefront.jpg",
 
+  /**
+   * Sits behind the name at the top of the site.
+   *
+   * A photograph of the room the client is actually walking into. Until an
+   * interior shot exists this reuses the storefront, which is at least the
+   * right building — a stock interior of a bigger shop would promise a room
+   * the shop does not have.
+   */
+  heroPhoto: "/storefront.jpg",
+
   /** Exact pin from the shop's Google Maps listing. */
   coords: { lat: 40.9291924, lng: -73.8931055 },
   /**

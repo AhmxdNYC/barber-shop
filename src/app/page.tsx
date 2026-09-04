@@ -32,10 +32,15 @@ export default async function HomePage() {
     <>
       {/* ── hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-line">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-bone/[0.04] blur-[120px]"
-        />
+        {/*
+          The room behind the name. Decorative, so it is hidden from
+          assistive technology — the photograph says nothing the heading
+          does not, and announcing it would only add noise.
+        */}
+        <div className="hero-photo" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={SHOP.heroPhoto} alt="" />
+        </div>
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-20 sm:pt-28">
 
           <Wordmark

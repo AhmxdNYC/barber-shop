@@ -38,6 +38,12 @@ Senior Cut · Hair Design.
 ## 4. Photos
 
 - [x] ~~Shopfront~~ — done, on the Visit section under the map
+- [ ] **An interior shot** — this sits behind the shop name at the top of
+      the site. Stand at the back with your back to the wall, landscape,
+      lights on. It is the first thing anyone sees, so it is the single most
+      valuable photograph left.
+- [x] ~~Second chair's portrait~~ — done, though a shot at her chair would
+      sit better beside the others than a selfie
 - [ ] One portrait per barber — chest up, standing at their chair
 - [ ] 8+ photos of actual cuts for the gallery
 - [ ] One or two of the shop interior

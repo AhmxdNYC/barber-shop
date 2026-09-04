@@ -260,3 +260,44 @@
 .photo-muted {
   filter: saturate(0.62) brightness(0.9) contrast(1.04);
 }
+
+
+/* ── hero photograph ──────────────────────────────────────────────
+   A photograph behind the name has one job and one hazard: it has to
+   set the room without ever competing with the words on top of it.
+
+   So it is pushed a long way down — desaturated, dimmed, and covered
+   by a gradient that goes to solid black at the bottom edge. The
+   wordmark sits on near-black either way, and the section below has
+   nothing to butt against. */
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.22) brightness(0.42) contrast(1.08);
+}
+
+.hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-ground) 72%, transparent) 0%,
+      color-mix(in srgb, var(--color-ground) 78%, transparent) 45%,
+      var(--color-ground) 100%
+    ),
+    /* Keeps the left edge dark where the wordmark actually sits. */
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-ground) 60%, transparent) 0%,
+      transparent 60%
+    );
+}
