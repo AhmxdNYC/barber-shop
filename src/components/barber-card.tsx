@@ -32,9 +32,13 @@ export function BarberCard({ barber, href }: Props) {
         />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-surface to-transparent" />
         {barber.isPlaceholder ? (
-          <span className="absolute left-4 top-4 rounded-full border border-line-strong bg-ground/80 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-bone-3 backdrop-blur-sm">
-            Placeholder
-          </span>
+          // Only badge a chair whose photograph is still a stand-in; a real
+          // portrait with a name yet to come needs no label across the face.
+          barber.photo.endsWith(".svg") ? (
+            <span className="absolute left-4 top-4 rounded-full border border-line-strong bg-ground/80 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-bone-3 backdrop-blur-sm">
+              Placeholder
+            </span>
+          ) : null
         ) : (
           <span className="absolute left-4 top-4 rounded-full border border-line-strong bg-ground/80 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-brass backdrop-blur-sm">
             {barber.yearsExperience} yrs

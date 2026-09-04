@@ -34,11 +34,12 @@ export const BARBERS: Barber[] = [
   },
   {
     slug: "chair-2",
+    // TODO: her real name. The photograph arrived before it did.
     name: "Second Chair",
     nickname: "",
-    specialty: "Name and photo to come",
+    specialty: "Name to come",
     yearsExperience: 0,
-    photo: "/barbers/chair-2.svg",
+    photo: "/barbers/chair-2.jpg",
     services: [],
     nextAvailable: "—",
     isPlaceholder: true,
