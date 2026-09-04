@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { HOURS } from "@/lib/shop";
+import { liveServices } from "@/lib/shop/live-services";
+import { openingHours } from "@/lib/shop/opening-hours";
 import { BookingFlow } from "@/components/booking/booking-flow";
 import type { CalendarDay } from "@/components/booking/types";
 
@@ -22,7 +23,7 @@ const MONTHS = [
  * "today" itself — that would differ from the server render and cause a
  * hydration mismatch.
  */
-function buildDays(count = 14): CalendarDay[] {
+function buildDays(hours: Awaited<ReturnType<typeof openingHours>>, count = 14): CalendarDay[] {
   const today = new Date();
   const days: CalendarDay[] = [];
 
@@ -33,14 +34,14 @@ function buildDays(count = 14): CalendarDay[] {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
-    const hours = HOURS[d.getDay()];
+    const dayHours = hours[d.getDay()];
 
     days.push({
       date: `${y}-${m}-${day}`,
       weekday: WEEKDAYS[d.getDay()],
       dayNum: String(d.getDate()),
       month: MONTHS[d.getMonth()],
-      isClosed: hours.opens === null,
+      isClosed: dayHours.opens === null,
       isToday: i === 0,
     });
   }
@@ -52,11 +53,16 @@ export default async function BookPage({
 }: {
   searchParams: Promise<{ barber?: string; service?: string }>;
 }) {
-  const params = await searchParams;
+  const [params, services, hours] = await Promise.all([
+    searchParams,
+    liveServices(),
+    openingHours(),
+  ]);
 
   return (
     <BookingFlow
-      days={buildDays()}
+      days={buildDays(hours)}
+      services={services}
       initialBarber={params.barber ?? null}
       initialService={params.service ?? null}
     />

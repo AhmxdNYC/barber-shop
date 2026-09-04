@@ -1,12 +1,14 @@
-import { SERVICES, getBarber } from "@/lib/shop";
+import { getBarber, type Service } from "@/lib/shop";
 import { PriceRow } from "@/components/ui/price-row";
 import { Button } from "@/components/ui/button";
 
 export function StepService({
+  services,
   barberSlug,
   onSelect,
   onBack,
 }: {
+  services: Service[];
   barberSlug: string | null;
   onSelect: (slug: string) => void;
   onBack: () => void;
@@ -23,7 +25,7 @@ export function StepService({
       </p>
 
       <ul className="mt-8 divide-y divide-line border-y border-line">
-        {SERVICES.map((service) => (
+        {services.map((service) => (
           <li key={service.slug}>
             <button
               type="button"

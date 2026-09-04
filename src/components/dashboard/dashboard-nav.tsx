@@ -4,7 +4,8 @@ import { SHOP } from "@/lib/shop";
 
 const LINKS = [
   { href: "/dashboard", label: "Today" },
-  { href: "/dashboard/availability", label: "Availability" },
+  { href: "/dashboard/availability", label: "Hours" },
+  { href: "/dashboard/services", label: "Prices" },
   { href: "/dashboard/clients", label: "Clients" },
   { href: "/dashboard/settings", label: "Settings" },
 ];

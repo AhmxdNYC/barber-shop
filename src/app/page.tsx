@@ -1,13 +1,13 @@
 import Link from "next/link";
 import {
   SHOP,
-  SERVICES,
   BARBERS,
   formatPrice,
   formatDuration,
   formatHours,
 } from "@/lib/shop";
 import { openingHours } from "@/lib/shop/opening-hours";
+import { liveServices } from "@/lib/shop/live-services";
 import { BarberCard } from "@/components/barber-card";
 import { ShopMap } from "@/components/shop-map";
 import { ButtonLink } from "@/components/ui/button";
@@ -17,8 +17,8 @@ const todayIndex = () => new Date().getDay();
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const popular = SERVICES.filter((s) => s.popular);
-  const hours = await openingHours();
+  const [services, hours] = await Promise.all([liveServices(), openingHours()]);
+  const popular = services.filter((s) => s.popular);
   const today = hours[todayIndex()];
 
   return (
@@ -138,7 +138,7 @@ export default async function HomePage() {
           </header>
 
           <ul className="mt-10 divide-y divide-line border-y border-line">
-            {SERVICES.slice(0, 5).map((service) => (
+            {services.slice(0, 5).map((service) => (
               <li key={service.slug}>
                 <Link
                   href={`/book?service=${service.slug}`}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getService } from "@/lib/shop";
+import type { Service } from "@/lib/shop";
 import {
   bookingProvider,
   IS_DEMO,
@@ -27,10 +27,13 @@ import { EMPTY_FORM, type CalendarDay, type ContactForm, type Step } from "./typ
  */
 export function BookingFlow({
   days,
+  services,
   initialBarber,
   initialService,
 }: {
   days: CalendarDay[];
+  /** The live menu, so a price edited in the dashboard shows here at once. */
+  services: Service[];
   initialBarber: string | null;
   initialService: string | null;
 }) {
@@ -49,7 +52,7 @@ export function BookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<BookingResult | null>(null);
 
-  const service = serviceSlug ? getService(serviceSlug) : undefined;
+  const service = services.find((s) => s.slug === serviceSlug);
   const isRedirect = bookingProvider.mode === "redirect";
   const selectedDay = days.find((d) => d.date === date);
 
@@ -126,6 +129,7 @@ export function BookingFlow({
 
       {step === 1 && (
         <StepService
+          services={services}
           barberSlug={barberSlug}
           onSelect={(slug) =>
             reselect(() => {

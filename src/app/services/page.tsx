@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SHOP, SERVICES, formatPrice } from "@/lib/shop";
+import { SHOP, formatPrice } from "@/lib/shop";
+import { liveServices } from "@/lib/shop/live-services";
 import { PriceRow } from "@/components/ui/price-row";
 import { ButtonLink } from "@/components/ui/button";
 
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
   description: "Every service, what it costs and how long it takes.",
 };
 
-export default function ServicesPage() {
+export const revalidate = 3600;
+
+export default async function ServicesPage() {
+  const services = await liveServices();
+
   return (
     <div className="mx-auto max-w-4xl px-5 py-16">
       <header className="max-w-2xl">
@@ -24,7 +29,7 @@ export default function ServicesPage() {
       </header>
 
       <ul className="mt-12 divide-y divide-line border-y border-line">
-        {SERVICES.map((service) => (
+        {services.map((service) => (
           <li key={service.slug}>
             <Link
               href={`/book?service=${service.slug}`}
