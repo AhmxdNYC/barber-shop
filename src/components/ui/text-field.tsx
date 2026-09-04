@@ -43,10 +43,10 @@ export function TextField({
         aria-invalid={error ? true : undefined}
         onChange={(e) => onChange(e.target.value)}
         className={`w-full rounded-[3px] border bg-surface px-3.5 py-3 text-bone placeholder:text-bone-3 focus:outline-none ${
-          error ? "border-accent" : "border-line focus:border-bone-3"
+          error ? "border-danger" : "border-line focus:border-bone-3"
         }`}
       />
-      {error && <span className="mt-1 block text-xs text-accent">{error}</span>}
+      {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
     </label>
   );
 }

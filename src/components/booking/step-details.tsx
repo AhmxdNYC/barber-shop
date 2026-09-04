@@ -120,7 +120,7 @@ export function StepDetails({
       </p>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-[3px] border border-accent bg-accent-dim px-4 py-3 text-sm text-bone">
+        <p role="alert" className="mt-4 rounded-[3px] border border-danger bg-danger-dim px-4 py-3 text-sm text-bone">
           {error}
         </p>
       )}

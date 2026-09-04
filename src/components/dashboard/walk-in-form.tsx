@@ -116,7 +116,7 @@ export function WalkInForm({ defaultStart }: { defaultStart: string }) {
       </div>
 
       {state.error && (
-        <p role="alert" className="mt-4 rounded-[3px] border border-accent bg-accent-dim px-4 py-2.5 text-sm">
+        <p role="alert" className="mt-4 rounded-[3px] border border-danger bg-danger-dim px-4 py-2.5 text-sm">
           {state.error}
         </p>
       )}

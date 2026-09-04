@@ -6,32 +6,50 @@
   brass reserved for small marks of craft.
 */
 @theme {
-  --color-ground: #0e0d0b;
-  --color-surface: #16140f;
-  --color-surface-2: #1f1c16;
-  --color-line: #2e2a22;
-  --color-line-strong: #433c31;
+  /*
+    A neutral, high-contrast scale in the manner of Vercel's: a true black
+    ground, greys with no hue in them, and colour reserved for meaning
+    rather than decoration.
 
-  --color-bone: #f3efe7;
-  --color-bone-2: #aba396;
-  --color-bone-3: #746d61;
+    The previous palette was warm — near-black with a brown cast, bone
+    whites, oxblood and brass. It suited a traditional barbershop but read
+    as heavy, and every surface carried a tint whether or not it wanted one.
+  */
+  --color-ground: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-2: #161616;
+  --color-line: #242424;
+  --color-line-strong: #383838;
 
-  --color-accent: #cc4b3c;
-  --color-accent-bright: #e05f4f;
-  --color-accent-dim: #3a1b16;
+  --color-bone: #ededed;
+  --color-bone-2: #a1a1a1;
+  --color-bone-3: #6e6e6e;
 
-  --color-brass: #c9a25e;
-  --color-brass-dim: #33291a;
+  /*
+    Emphasis: selected states, links, the thing being pointed at. Blue
+    because it is the one hue that reads as interactive without also
+    reading as a warning.
+  */
+  --color-accent: #3b82f6;
+  --color-accent-bright: #60a5fa;
+  --color-accent-dim: #10192b;
 
-  /* The shop's own green — the door, the window frames, the sign board. */
-  --color-shopgreen: #2e4a3c;
-  --color-shopgreen-deep: #22382e;
+  /*
+    Positive and settled: a confirmed booking, a saved change. Kept
+    distinct from emphasis so "this is done" never looks like "click this".
+  */
+  --color-brass: #4ade80;
+  --color-brass-dim: #0d1f14;
+
+  /* Trouble: no-shows, cancellations, validation. */
+  --color-danger: #f43f5e;
+  --color-danger-dim: #2a0f16;
 
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   /* Only the wordmark uses this — a high-contrast serif is what traditional
      painted shop signage actually looks like. */
   --font-wordmark: var(--font-bodoni), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 3px;
 }
@@ -196,16 +214,17 @@
   white-space: nowrap;
 }
 
-/* On the dark site: bone letters, edged in the shop's green. */
+/* On a black ground an outline only muddies the letterforms, so the
+   wordmark is set plain and relies on the serif's own contrast. */
 .wordmark--light {
   color: var(--color-bone);
-  -webkit-text-stroke-color: var(--color-shopgreen-deep);
+  -webkit-text-stroke-width: 0;
 }
 
 /* On paper and the poster, where the ground is white. */
 .wordmark--dark {
-  color: var(--color-shopgreen-deep);
-  -webkit-text-stroke-color: transparent;
+  color: #111111;
+  -webkit-text-stroke-width: 0;
 }
 
 /* The sign board itself, for places with room for it. */
@@ -213,8 +232,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-shopgreen-deep);
-  border: 1px solid color-mix(in srgb, var(--color-brass) 40%, transparent);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line-strong);
   border-radius: 2px;
   padding: 0.45em 0.9em;
 }

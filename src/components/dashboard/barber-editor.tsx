@@ -149,7 +149,7 @@ function BarberForm({
 
       </div>
 
-      {state.error && <p role="alert" className="mt-3 text-sm text-accent">{state.error}</p>}
+      {state.error && <p role="alert" className="mt-3 text-sm text-danger">{state.error}</p>}
 
       <div className="mt-4 flex gap-3">
         <Button type="submit" disabled={pending}>

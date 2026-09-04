@@ -6,7 +6,7 @@ const STATUS_STYLES: Record<string, string> = {
   CONFIRMED: "border-brass-dim bg-brass-dim text-brass",
   PENDING_PAYMENT: "border-line-strong bg-surface-2 text-bone-3",
   COMPLETED: "border-line bg-surface-2 text-bone-2",
-  NO_SHOW: "border-accent bg-accent-dim text-accent",
+  NO_SHOW: "border-danger bg-danger-dim text-danger",
 };
 
 const STATUS_LABELS: Record<string, string> = {

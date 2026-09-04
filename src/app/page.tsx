@@ -28,7 +28,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b border-line">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-accent/12 blur-[120px]"
+          className="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-bone/[0.04] blur-[120px]"
         />
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-20 sm:pt-28">
 

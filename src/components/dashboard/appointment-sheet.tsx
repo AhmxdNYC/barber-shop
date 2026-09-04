@@ -126,7 +126,7 @@ export function AppointmentSheet({
             onDone={onClose}
           />
         ) : confirmingCancel ? (
-          <form action={cancelAppointmentAction} className="mt-6 rounded-[3px] border border-accent bg-accent-dim p-4">
+          <form action={cancelAppointmentAction} className="mt-6 rounded-[3px] border border-danger bg-danger-dim p-4">
             <input type="hidden" name="id" value={appointment.id} />
             <p className="text-sm">
               Cancel {appointment.clientName}&rsquo;s {appointment.serviceName}?
@@ -259,7 +259,7 @@ function RescheduleBlock({
         )}
       </div>
 
-      {state.error && <p role="alert" className="mt-3 text-sm text-accent">{state.error}</p>}
+      {state.error && <p role="alert" className="mt-3 text-sm text-danger">{state.error}</p>}
 
       <div className="mt-4 flex gap-2">
         <Button type="submit" disabled={!chosen || pending}>

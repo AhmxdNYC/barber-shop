@@ -42,7 +42,7 @@ export function ClientNote({
           {pending ? "Saving…" : "Save note"}
         </Button>
         {state.ok && !dirty && <span className="text-sm text-brass">Saved.</span>}
-        {state.error && <span role="alert" className="text-sm text-accent">{state.error}</span>}
+        {state.error && <span role="alert" className="text-sm text-danger">{state.error}</span>}
         <span className="ml-auto text-xs text-bone-3">Only you can see this.</span>
       </div>
     </form>

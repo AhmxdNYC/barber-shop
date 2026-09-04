@@ -103,7 +103,7 @@ export default async function ClientDetailPage({
                   <span
                     className={`rounded-full border px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.1em] ${
                       a.status === "NO_SHOW"
-                        ? "border-accent text-accent"
+                        ? "border-danger text-danger"
                         : a.status === "CANCELLED"
                           ? "border-line text-bone-3"
                           : "border-line-strong text-bone-2"

@@ -152,7 +152,7 @@ function ServiceRowForm({
         />
       </label>
 
-      {state.error && <p role="alert" className="mt-2 text-sm text-accent">{state.error}</p>}
+      {state.error && <p role="alert" className="mt-2 text-sm text-danger">{state.error}</p>}
       {state.ok && <p className="mt-2 text-sm text-brass">{state.ok}</p>}
     </form>
   );

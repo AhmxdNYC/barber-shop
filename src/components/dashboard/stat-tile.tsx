@@ -16,7 +16,7 @@ export function StatTile({
       </p>
       <p
         className={`mt-1.5 font-display text-2xl font-extrabold tabular-nums ${
-          tone === "warn" ? "text-accent" : "text-bone"
+          tone === "warn" ? "text-danger" : "text-bone"
         }`}
       >
         {value}

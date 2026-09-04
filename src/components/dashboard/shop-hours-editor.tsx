@@ -91,7 +91,7 @@ function ShopDayRow({
         {pending ? "Saving…" : "Save"}
       </button>
 
-      {state.error && <span role="alert" className="w-full text-xs text-accent">{state.error}</span>}
+      {state.error && <span role="alert" className="w-full text-xs text-danger">{state.error}</span>}
       {state.ok && <span className="w-full text-xs text-brass">{state.ok}</span>}
     </form>
   );

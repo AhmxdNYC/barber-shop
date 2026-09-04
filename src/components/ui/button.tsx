@@ -4,7 +4,9 @@ import type { ComponentProps, ReactNode } from "react";
 type Variant = "primary" | "outline" | "ghost";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-accent text-bone hover:bg-accent-bright",
+  // White on black: the primary action reads as the primary action without
+  // borrowing a colour that also means "warning" or "confirmed" elsewhere.
+  primary: "bg-bone text-ground hover:bg-white",
   outline: "border border-line-strong text-bone hover:border-bone-3",
   ghost: "text-bone-3 hover:text-bone",
 };

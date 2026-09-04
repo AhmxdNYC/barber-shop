@@ -68,7 +68,7 @@ export function DeviceLink() {
         <Button variant="outline" onClick={generate}>
           Sign in another device
         </Button>
-        {error && <p className="mt-2 text-sm text-accent">{error}</p>}
+        {error && <p className="mt-2 text-sm text-danger">{error}</p>}
       </div>
     );
   }
@@ -110,7 +110,7 @@ export function DeviceLink() {
             Expires in {panel?.secondsLeft ?? 0}s
           </p>
           <p className="mt-1 text-bone-3">Refreshes automatically.</p>
-          {error && <p className="mt-2 text-accent">{error}</p>}
+          {error && <p className="mt-2 text-danger">{error}</p>}
         </div>
       </div>
 

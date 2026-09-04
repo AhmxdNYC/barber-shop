@@ -58,7 +58,7 @@ export function RecurringBlockEditor({
           </label>
         </div>
 
-        {state.error && <p role="alert" className="mt-3 text-sm text-accent">{state.error}</p>}
+        {state.error && <p role="alert" className="mt-3 text-sm text-danger">{state.error}</p>}
         {state.ok && <p className="mt-3 text-sm text-brass">{state.ok}</p>}
 
         <button

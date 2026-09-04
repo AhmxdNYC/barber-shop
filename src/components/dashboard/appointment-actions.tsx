@@ -36,7 +36,7 @@ export function AppointmentActions({
 
 const TONES = {
   primary: "border-brass text-brass hover:bg-brass-dim",
-  warn: "border-accent text-accent hover:bg-accent-dim",
+  warn: "border-danger text-danger hover:bg-danger-dim",
   quiet: "border-line text-bone-3 hover:border-bone-3 hover:text-bone-2",
 };
 

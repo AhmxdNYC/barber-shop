@@ -97,7 +97,7 @@ function Group({
                   {client.name ?? client.email}
                 </span>
 
-                <span className={`text-sm ${highlight ? "text-accent" : "text-bone-2"}`}>
+                <span className={`text-sm ${highlight ? "text-danger" : "text-bone-2"}`}>
                   {agoInWords(client.daysSinceLastVisit)}
                 </span>
 
@@ -124,7 +124,7 @@ function Group({
                 )}
 
                 {client.noShowCount > 0 && (
-                  <span className="text-sm text-accent">
+                  <span className="text-sm text-danger">
                     {client.noShowCount} no-show
                     {client.noShowCount === 1 ? "" : "s"}
                   </span>
