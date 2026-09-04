@@ -1,11 +1,11 @@
 import type {
   AvailabilityQuery,
   BookingProvider,
-
+  BookingRequest,
   BookingResult,
   TimeSlot,
 } from "../types";
-import { getAvailabilityAction } from "@/app/actions/booking";
+import { createBookingAction, getAvailabilityAction } from "@/app/actions/booking";
 
 /**
  * The real provider: our own database and availability engine.
@@ -23,12 +23,7 @@ export const databaseProvider: BookingProvider = {
     return getAvailabilityAction(query);
   },
 
-  async createBooking(): Promise<BookingResult> {
-    // Booking writes land in the next phase, together with the deposit flow.
-    return {
-      ok: false,
-      reason: "provider_error",
-      message: "Booking is not switched on yet — availability only.",
-    };
+  async createBooking(request: BookingRequest): Promise<BookingResult> {
+    return createBookingAction(request);
   },
 };

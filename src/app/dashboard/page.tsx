@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/client";
 import { formatPrice } from "@/lib/shop";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { AppointmentRow } from "@/components/dashboard/appointment-row";
+import { WalkInForm } from "@/components/dashboard/walk-in-form";
 
 /**
  * The day view — the only screen a working barber has time to look at.
@@ -77,7 +78,10 @@ export default async function DashboardPage({
       </div>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl font-bold">The day</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-bold">The day</h2>
+          <WalkInForm defaultStart={defaultWalkInStart(date, timeZone)} />
+        </div>
         {appointments.length === 0 ? (
           <p className="mt-4 rounded-[3px] border border-line bg-surface p-8 text-center text-bone-2">
             Nothing booked. Walk-ins welcome.
@@ -96,4 +100,18 @@ export default async function DashboardPage({
       </section>
     </div>
   );
+}
+
+/** Prefills the walk-in form with the next quarter hour, shop-local. */
+function defaultWalkInStart(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  const minutes = Math.ceil(Number(get("minute")) / 15) * 15;
+  const hour = minutes === 60 ? String(Number(get("hour")) + 1).padStart(2, "0") : get("hour");
+  const minute = String(minutes === 60 ? 0 : minutes).padStart(2, "0");
+  return `${get("year")}-${get("month")}-${get("day")}T${hour}:${minute}`;
 }

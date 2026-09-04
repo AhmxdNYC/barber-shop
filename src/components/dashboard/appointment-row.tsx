@@ -1,5 +1,6 @@
 import { formatPrice } from "@/lib/shop";
 import type { DayAppointment } from "@/lib/dashboard/queries";
+import { AppointmentActions } from "./appointment-actions";
 
 const STATUS_STYLES: Record<string, string> = {
   CONFIRMED: "border-brass-dim bg-brass-dim text-brass",
@@ -90,6 +91,8 @@ export function AppointmentRow({
             {appointment.clientNotes}
           </p>
         )}
+
+        <AppointmentActions id={appointment.id} status={status} />
       </div>
 
       <span className="shrink-0 text-right">
