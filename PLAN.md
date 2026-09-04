@@ -48,8 +48,9 @@ every barber's open slots.
 **Guest** — browses, books, pays a deposit. Never has to create an account.
 Gets a signed management link by email to cancel or reschedule.
 
-**Client** (signed in) — everything a guest can do, plus appointment history,
-one-tap rebook of a previous cut, and saved contact details.
+**Client** — books with a name, email and phone. No account, ever, unless we
+later decide one is worth it. They manage the booking through a signed link.
+See docs/GUEST-CANCELLATION.md and docs/AUTH-DECISION.md.
 
 **Barber** (exactly one, seeded by hand) — full dashboard. There is no
 role-management UI and no invite flow; the account is created by a seed script.

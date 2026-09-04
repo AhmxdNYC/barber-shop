@@ -71,26 +71,45 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  appointments Appointment[]
-  profile      ClientProfile?
-  barber       Barber?
-  accounts     Account[]
-  sessions     Session[]
-  waitlist     WaitlistEntry[]
+  /// Present only if this login belongs to a client rather than a barber.
+  client   Client?
+  barber   Barber?
+  accounts Account[]
+  sessions Session[]
 }
 
-/// Barber-facing notes, kept off User so client-visible queries cannot
-/// accidentally select them.
-model ClientProfile {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes           String?
+/// The person in the chair — identified by email, not by an account.
+///
+/// Every appointment points here, including ones booked as a guest or taken
+/// over the phone by the barber. That is what lets the shop see "this client
+/// has been in six times and no-showed twice" without ever asking anyone to
+/// sign up. Accounts are optional and attach later via `userId`.
+model Client {
+  id    String  @id @default(cuid())
+  /// Lower-cased and trimmed before writing, so one person is one row.
+  email String  @unique
+  name  String?
+  phone String?
+
+  /// Set only if this person chose to create an account. A booking never
+  /// requires one.
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  /// Barber-only. Never selected by client-facing queries.
+  notes String?
+
   visitCount      Int       @default(0)
   noShowCount     Int       @default(0)
   totalSpentCents Int       @default(0)
   lastVisitAt     DateTime?
   isBlocked       Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+  waitlist     WaitlistEntry[]
 }
 
 /// A chair. Each one owns its schedule independently.
@@ -233,12 +252,15 @@ model Appointment {
   barberId String
   barber   Barber @relation(fields: [barberId], references: [id], onDelete: Restrict)
 
-  // A signed-in client, or guest contact details. Exactly one is populated.
-  clientId   String?
-  client     User?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  guestName  String?
-  guestEmail String?
-  guestPhone String?
+  /// Always present, account or not. Contact details are snapshotted below
+  /// because people change phone numbers and past bookings should still show
+  /// what we actually had at the time.
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  contactName  String
+  contactEmail String
+  contactPhone String?
 
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
@@ -276,6 +298,7 @@ model Appointment {
   payment       Payment?
   notifications Notification[]
 
+  @@index([clientId, startsAt])
   @@index([barberId, startsAt])
   @@index([status, startsAt])
   @@index([startsAt])
@@ -307,9 +330,8 @@ model ProcessedWebhookEvent {
 
 model WaitlistEntry {
   id         String  @id @default(cuid())
-  clientId   String?
-  client     User?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  guestName  String?
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
   guestEmail String?
 
   barberId  String?
