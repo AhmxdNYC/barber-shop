@@ -51,7 +51,9 @@ writes and deletes rows.
 | `/book` | Four-step booking: barber → service → time → details |
 | `/login` | Barber sign-in (not linked from the public site) |
 | `/dashboard` | Barber-only: the day, stats, walk-ins |
-| `/dashboard/clients` | Visit history, no-shows, private notes |
+| `/dashboard/clients` | Who's due a cut, visit rhythm, private notes |
+| `/dashboard/clients/[id]` | One client: history, cadence, editable notes |
+| `/dashboard/revenue` | Takings by day, service and barber |
 | `/dashboard/settings` | Sign in another device, sign out |
 | `/booking/[token]` | Guest booking management — reschedule or cancel, no account |
 | `/booking/lost` | Resend a lost booking link |

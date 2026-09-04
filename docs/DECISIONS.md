@@ -356,6 +356,35 @@ Silently cancelling someone's haircut because the barber blocked an
 afternoon is a worse failure than showing him the conflict and letting him
 decide. He can call them; the software cannot.
 
+### The client list is sorted by who is overdue, not alphabetically
+
+A flat table answers "who are my clients", which is not a question a barber
+has. The one he does have is "who haven't I seen in a while" — a regular who
+normally comes every three weeks, is now at five, and has nothing booked is
+a phone call worth making, and an alphabetical list buries him among
+everyone who was in on Tuesday.
+
+So each client carries their rhythm: how often they come, how long it has
+been, what they usually get and from whom. "Due a cut" is its own group at
+the top, and someone is only in it if they are past their usual gap *and*
+have nothing booked.
+
+Two deliberate restraints. A single visit is not a rhythm, so no cadence is
+claimed from one. And there is a tolerance before anyone is called overdue,
+because a few days late is normal and a page that cries wolf gets ignored.
+
+### Revenue counts only completed work
+
+Booked revenue would flatter every figure on the page. The first time a
+barber notices the total does not match his till he stops trusting the
+dashboard entirely, which is worse than never having shown him money.
+
+No-shows and cancellations are reported separately rather than folded in.
+"What did I lose" is a real question, and a single net figure answers
+neither it nor "what did I take". It is also the number that decides whether
+deposits are worth building — if it is near zero, they are friction with no
+payoff.
+
 ### Placeholder chairs say they are placeholders
 
 Three of four barbers were invented, with names and backstories. Shown to the
