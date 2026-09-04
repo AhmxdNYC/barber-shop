@@ -4,7 +4,7 @@ import type {
   BookingRequest,
   BookingResult,
   TimeSlot,
-} from "./types";
+} from "../types";
 import { HOURS, getService, formatMinutes } from "@/lib/shop";
 
 /** Stable hash so the same day always shows the same slots. */

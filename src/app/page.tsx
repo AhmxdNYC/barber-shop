@@ -10,6 +10,7 @@ import {
 } from "@/lib/shop";
 import { BarberCard } from "@/components/barber-card";
 import { ShopMap } from "@/components/shop-map";
+import { ButtonLink } from "@/components/ui/button";
 
 const todayIndex = () => new Date().getDay();
 
@@ -41,18 +42,10 @@ export default function HomePage() {
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/book"
-              className="rounded-[3px] bg-accent px-7 py-3.5 text-center font-semibold text-bone transition-colors hover:bg-accent-bright"
-            >
-              Book a chair
-            </Link>
-            <Link
-              href="/barbers"
-              className="rounded-[3px] border border-line-strong px-7 py-3.5 text-center font-semibold text-bone transition-colors hover:border-bone-3"
-            >
+            <ButtonLink href="/book">Book a chair</ButtonLink>
+            <ButtonLink href="/barbers" variant="outline">
               Pick your barber
-            </Link>
+            </ButtonLink>
           </div>
 
           {/* live-ish status strip */}

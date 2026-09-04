@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HOURS } from "@/lib/shop";
-import { BookingFlow, type CalendarDay } from "@/components/booking-flow";
+import { BookingFlow } from "@/components/booking/booking-flow";
+import type { CalendarDay } from "@/components/booking/types";
 
 export const metadata: Metadata = {
   title: "Book a chair",

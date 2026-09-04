@@ -63,13 +63,13 @@ enum WaitlistStatus {
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
-  emailVerified DateTime?
+  emailVerified DateTime? @db.Timestamptz(3)
   name          String?
   phone         String?
   image         String?
   role          Role      @default(CLIENT)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
 
   /// Present only if this login belongs to a client rather than a barber.
   client   Client?
@@ -102,11 +102,11 @@ model Client {
   visitCount      Int       @default(0)
   noShowCount     Int       @default(0)
   totalSpentCents Int       @default(0)
-  lastVisitAt     DateTime?
+  lastVisitAt     DateTime? @db.Timestamptz(3)
   isBlocked       Boolean   @default(false)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   appointments Appointment[]
   waitlist     WaitlistEntry[]
@@ -238,8 +238,8 @@ model TimeOff {
   id       String   @id @default(cuid())
   barberId String
   barber   Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
-  startsAt DateTime // UTC
-  endsAt   DateTime // UTC
+  startsAt DateTime @db.Timestamptz(3) // UTC
+  endsAt   DateTime @db.Timestamptz(3) // UTC
   reason   String?
   isAllDay Boolean  @default(false)
 
@@ -265,8 +265,8 @@ model Appointment {
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
 
-  startsAt DateTime // UTC
-  endsAt   DateTime // UTC — includes the cleanup buffer
+  startsAt DateTime @db.Timestamptz(3) // UTC
+  endsAt   DateTime @db.Timestamptz(3) // UTC — includes the cleanup buffer
 
   status AppointmentStatus @default(PENDING_PAYMENT)
   source BookingSource     @default(ONLINE)
@@ -276,12 +276,12 @@ model Appointment {
   depositCents Int
 
   /// While PENDING_PAYMENT, the slot is held until this instant.
-  holdExpiresAt DateTime?
+  holdExpiresAt DateTime? @db.Timestamptz(3)
 
   clientNotes String?
   barberNotes String?
 
-  cancelledAt        DateTime?
+  cancelledAt        DateTime? @db.Timestamptz(3)
   cancelledBy        String?
   cancellationReason String?
 
@@ -292,8 +292,8 @@ model Appointment {
   /// predictable and therefore wrong for a bearer credential.
   manageTokenHash String @unique
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   payment       Payment?
   notifications Notification[]
@@ -317,21 +317,21 @@ model Payment {
   refundedCents Int           @default(0)
   status        PaymentStatus @default(PENDING)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 }
 
 /// Stripe redelivers webhooks; recording event ids makes handling idempotent.
 model ProcessedWebhookEvent {
   id          String   @id
   type        String
-  processedAt DateTime @default(now())
+  processedAt DateTime @default(now()) @db.Timestamptz(3)
 }
 
 model WaitlistEntry {
   id         String  @id @default(cuid())
-  clientId String?
-  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId   String?
+  client     Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
   guestEmail String?
 
   barberId  String?
@@ -341,8 +341,8 @@ model WaitlistEntry {
 
   desiredDate DateTime       @db.Date
   status      WaitlistStatus @default(ACTIVE)
-  notifiedAt  DateTime?
-  createdAt   DateTime       @default(now())
+  notifiedAt  DateTime?      @db.Timestamptz(3)
+  createdAt   DateTime       @default(now()) @db.Timestamptz(3)
 
   @@index([desiredDate, status])
 }
@@ -359,8 +359,8 @@ model Notification {
   recipient         String
   providerMessageId String?
   error             String?
-  sentAt            DateTime?
-  createdAt         DateTime           @default(now())
+  sentAt            DateTime?          @db.Timestamptz(3)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(3)
 
   @@index([status, createdAt])
 }
@@ -397,14 +397,14 @@ model Account {
 model Session {
   sessionToken String   @unique
   userId       String
-  expires      DateTime
+  expires      DateTime @db.Timestamptz(3)
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
   identifier String
   token      String
-  expires    DateTime
+  expires    DateTime @db.Timestamptz(3)
 
   @@id([identifier, token])
 }

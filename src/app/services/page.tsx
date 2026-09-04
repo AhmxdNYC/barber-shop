@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SHOP, SERVICES, formatPrice, formatDuration } from "@/lib/shop";
+import { SHOP, SERVICES, formatPrice } from "@/lib/shop";
+import { PriceRow } from "@/components/ui/price-row";
+import { ButtonLink } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Services & Prices",
@@ -28,26 +30,7 @@ export default function ServicesPage() {
               href={`/book?service=${service.slug}`}
               className="group block py-6 transition-colors hover:bg-surface"
             >
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-                <h2 className="font-display text-xl font-bold transition-colors group-hover:text-accent">
-                  {service.name}
-                </h2>
-                {service.popular && (
-                  <span className="rounded-full border border-brass-dim bg-brass-dim px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-brass">
-                    Most booked
-                  </span>
-                )}
-                <span
-                  aria-hidden="true"
-                  className="mx-1 hidden flex-1 translate-y-[-4px] border-b border-dotted border-line-strong sm:block"
-                />
-                <span className="text-sm text-bone-3">
-                  {formatDuration(service.durationMinutes)}
-                </span>
-                <span className="ml-auto font-display text-xl font-bold tabular-nums sm:ml-0 sm:w-20 sm:text-right">
-                  {formatPrice(service.priceCents)}
-                </span>
-              </div>
+              <PriceRow service={service} />
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-bone-2">
                 {service.description}
               </p>
@@ -63,12 +46,9 @@ export default function ServicesPage() {
           online. The balance is paid in the shop, cash or card. Cancel more than
           24 hours ahead and the deposit comes straight back.
         </p>
-        <Link
-          href="/book"
-          className="mt-5 inline-block rounded-[3px] bg-accent px-6 py-3 text-sm font-semibold text-bone transition-colors hover:bg-accent-bright"
-        >
+        <ButtonLink href="/book" className="mt-5">
           Book a chair
-        </Link>
+        </ButtonLink>
       </div>
     </div>
   );

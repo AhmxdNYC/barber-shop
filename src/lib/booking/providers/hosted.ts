@@ -1,4 +1,4 @@
-import type { AvailabilityQuery, BookingProvider, BookingResult } from "./types";
+import type { AvailabilityQuery, BookingProvider, BookingResult } from "../types";
 
 /**
  * Adapter for any hosted booking page (Square, Booksy, Fresha, Setmore).
