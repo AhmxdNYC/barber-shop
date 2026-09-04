@@ -37,10 +37,26 @@ suite("slotsForBarber", () => {
     expect(await slotsForBarber("eduardo", "nothing", DATE, NOW)).toEqual([]);
   });
 
-  it("gives a longer service fewer slots than a shorter one", async () => {
-    const short = await slotsForBarber("eduardo", "kids-haircut", DATE, NOW);
-    const long = await slotsForBarber("eduardo", "adult-haircut", DATE, NOW);
-    expect(long.length).toBeLessThan(short.length);
+  /**
+   * Both services are an hour, so they must offer the same times. The
+   * general rule — a longer service yields fewer slots — is covered against
+   * the pure engine, where a duration can be varied without needing a menu
+   * that happens to contain two different ones.
+   */
+  it("offers the same times for two services of equal length", async () => {
+    const [kids, adult, services] = await Promise.all([
+      slotsForBarber("eduardo", "kids-haircut", DATE, NOW),
+      slotsForBarber("eduardo", "adult-haircut", DATE, NOW),
+      prisma.service.findMany({
+        where: { slug: { in: ["kids-haircut", "adult-haircut"] } },
+        select: { durationMinutes: true },
+      }),
+    ]);
+
+    expect(new Set(services.map((s) => s.durationMinutes)).size).toBe(1);
+    expect(adult.map((s) => s.startMinutes)).toEqual(
+      kids.map((s) => s.startMinutes),
+    );
   });
 
   it("offers every chair the same times before anything is booked", async () => {

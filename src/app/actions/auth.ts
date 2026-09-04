@@ -18,9 +18,11 @@ import {
   issueMagicLink,
 } from "@/lib/auth/magic-link";
 import { sendBarberSignInLink } from "@/lib/notifications/send";
+import { isLoginThrottled, recordLoginAttempt } from "@/lib/auth/throttle";
 
 const Credentials = z.object({
-  email: z.string().email().max(200),
+  /** An address, or just the part before the @ — see resolveAccount. */
+  email: z.string().trim().min(1).max(200),
   password: z.string().min(1).max(200),
   next: z.string().max(200).optional(),
 });
@@ -48,17 +50,27 @@ export async function loginAction(
   }
 
   const { email, password, next } = parsed.data;
-  const user = await prisma.user.findUnique({
-    where: { email: email.trim().toLowerCase() },
-  });
+
+  // Guessing is what breaks a password, so the number of guesses is capped
+  // before anything else happens.
+  if (await isLoginThrottled(email)) {
+    return {
+      error: "Too many attempts. Wait a few minutes and try again.",
+    };
+  }
+
+  const user = await resolveAccount(email);
 
   // Verify even when the user is missing, so the response time does not
   // reveal whether the address exists.
   const ok = await verifyPassword(password, user?.passwordHash ?? null);
 
   if (!user || !ok || (user.role !== "BARBER" && user.role !== "OWNER")) {
+    await recordLoginAttempt(email, false);
     return { error: "That email and password do not match." };
   }
+
+  await recordLoginAttempt(email, true);
 
   const token = await createSessionToken({
     userId: user.id,
@@ -116,4 +128,33 @@ export async function requestMagicLinkAction(
   }
 
   return { sent: true };
+}
+
+
+/**
+ * Finds an account by address, or by the name in front of the @.
+ *
+ * "eduardo" is a great deal easier to type on a phone than
+ * "eduardo@eduardos.com", and a shop with four staff does not need the
+ * ceremony of full addresses. A bare name is only accepted when it matches
+ * exactly one account, so this can never quietly sign someone into the
+ * wrong one.
+ */
+async function resolveAccount(input: string) {
+  const value = input.trim().toLowerCase();
+
+  if (value.includes("@")) {
+    return prisma.user.findUnique({ where: { email: value } });
+  }
+
+  // Outside development the full address is required. A username is not a
+  // secret, but it is still one of the two things an attacker has to supply,
+  // and there is no reason to hand it over on a live shop.
+  if (process.env.NODE_ENV === "production") return null;
+
+  const matches = await prisma.user.findMany({
+    where: { email: { startsWith: `${value}@` } },
+    take: 2,
+  });
+  return matches.length === 1 ? matches[0] : null;
 }

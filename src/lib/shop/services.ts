@@ -17,7 +17,7 @@ export const SERVICES: Service[] = [
     slug: "adult-haircut",
     name: "Adult Haircut",
     description: "Cut and styled.",
-    durationMinutes: 45,
+    durationMinutes: 60,
     priceCents: 4500,
     popular: true,
   },
@@ -25,7 +25,7 @@ export const SERVICES: Service[] = [
     slug: "kids-haircut",
     name: "Kids Haircut",
     description: "Twelve and under.",
-    durationMinutes: 30,
+    durationMinutes: 60,
     priceCents: 3000,
   },
 ];

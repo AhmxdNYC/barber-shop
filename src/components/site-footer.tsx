@@ -62,6 +62,13 @@ export function SiteFooter({ hours }: { hours: DayHours[] }) {
                 Get directions
               </a>
             </li>
+            {/* For the shop, not for clients. The dashboard behind it is
+                guarded by a real session; this only saves typing a URL. */}
+            <li>
+              <Link href="/login" className="text-bone-3 hover:text-bone">
+                Barber login
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

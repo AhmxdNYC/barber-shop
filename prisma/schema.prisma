@@ -426,6 +426,22 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+/// Failed sign-in attempts, for rate limiting.
+///
+/// Without this a password can be guessed as fast as requests can be sent,
+/// which is the actual weakness in a sign-in form — not whether the
+/// identifier is an address or a name. Usernames are not secrets; passwords
+/// are, and this is what protects them.
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  /// What was typed in the identifier field, lower-cased.
+  identifier String
+  succeeded  Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([identifier, createdAt])
+}
+
 model VerificationToken {
   identifier String
   token      String

@@ -26,7 +26,15 @@ const KEY_LENGTH = 64;
 const SALT_BYTES = 16;
 const VERSION = "scrypt";
 
-export const MIN_PASSWORD_LENGTH = 12;
+/**
+ * Enforced in production only.
+ *
+ * A development database holds no real client data and gets a throwaway
+ * password; requiring a strong one there buys nothing and makes the account
+ * awkward to use. A deployed shop holds phone numbers and private notes.
+ */
+export const MIN_PASSWORD_LENGTH =
+  process.env.NODE_ENV === "production" ? 12 : 6;
 
 export async function hashPassword(password: string): Promise<string> {
   if (password.length < MIN_PASSWORD_LENGTH) {

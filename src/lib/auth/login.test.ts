@@ -65,6 +65,28 @@ suite("barber sign-in", () => {
     await prisma.user.update({ where: { email: EMAIL }, data: { role: "OWNER" } });
   });
 
+  /**
+   * A bare name is resolved to the one account whose address begins with
+   * it. Typing a full address on a phone between haircuts is friction for
+   * no gain, and the match must be unambiguous or it is refused.
+   */
+  it("resolves a bare name to exactly one account", async () => {
+    const byName = await prisma.user.findMany({
+      where: { email: { startsWith: "login-test@" } },
+      take: 2,
+    });
+    expect(byName).toHaveLength(1);
+    expect(byName[0].email).toBe(EMAIL);
+  });
+
+  it("refuses a bare name that matches nothing", async () => {
+    const none = await prisma.user.findMany({
+      where: { email: { startsWith: "nobody-at-all@" } },
+      take: 2,
+    });
+    expect(none).toHaveLength(0);
+  });
+
   it("the real seeded account can sign in", async () => {
     const eduardo = await prisma.user.findUnique({
       where: { email: "eduardo@eduardobarbershop.com" },

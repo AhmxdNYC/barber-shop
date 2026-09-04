@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/client";
 import { bookingDetailsFor } from "@/lib/notifications/booking-details";
 import { sendBookingReminder } from "@/lib/notifications/send";
 import { purgeExpiredMagicLinks } from "@/lib/auth/magic-link";
+import { purgeOldLoginAttempts } from "@/lib/auth/throttle";
 
 /**
  * The one scheduled job.
@@ -58,11 +59,13 @@ export async function GET(request: NextRequest) {
   });
 
   const purgedLinks = await purgeExpiredMagicLinks();
+  const purgedAttempts = await purgeOldLoginAttempts();
 
   return NextResponse.json({
     remindersSent: sent,
     holdsExpired: expired.count,
     expiredLinksPurged: purgedLinks,
+    loginAttemptsPurged: purgedAttempts,
     ranAt: now.toISOString(),
   });
 }

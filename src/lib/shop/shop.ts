@@ -7,7 +7,12 @@
  */
 export const SHOP = {
   name: "Eduardo's",
-  tagline: "One chair. No rush. Book the time, get the cut.",
+  /**
+   * "One chair" was a leftover from when this was built for a single barber.
+   * The shop has four, and the line now says the thing most likely to stop
+   * someone booking: that there is no account to make.
+   */
+  tagline: "Four chairs, no sign-up. Book the time, get the cut.",
   phone: "(914) 476-5347",
   email: "", // TODO: ask the shop. Empty hides it in the UI.
   address: {

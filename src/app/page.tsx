@@ -54,6 +54,11 @@ export default async function HomePage() {
             </ButtonLink>
           </div>
 
+          <p className="mt-4 text-sm text-bone-3">
+            No account and no app &mdash; name, email and a number is all it
+            takes.
+          </p>
+
           {/* live-ish status strip */}
           <dl className="mt-16 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-8 border-t border-line pt-8 sm:grid-cols-4">
             <div>

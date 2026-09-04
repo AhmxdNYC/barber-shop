@@ -129,6 +129,32 @@ The general shape is worth remembering: when the safe thing is blocked by a
 constraint, the answer is usually a smaller piece of information that is
 harmless to expose, not a relaxation of the thing protecting you.
 
+## Is a username weaker than an email address?
+
+The instinct that "eduardo" is easier to attack than
+"eduardo@eduardobarbershop.com" is half right, and the half it gets wrong
+matters more.
+
+**An identifier is not a secret.** It is on business cards, in mailto links,
+and in every email the shop has ever sent. Treating it as a second password
+is security by obscurity, and it fails the moment somebody guesses that the
+barber called Eduardo uses "eduardo". A design that depends on the username
+being unknown was never protecting anything.
+
+**What protects the account is the number of guesses.** Before this, a
+password could be tried as fast as requests could be sent — and that was
+true whether the identifier was a name or a full address. Failed attempts
+are now counted per identifier and refused after eight in fifteen minutes, a
+success clears the count so mistyping a few times does not lock the shop
+out, and the daily job clears old rows.
+
+That is the control that was missing, and it is worth far more than the
+format of the username.
+
+The bare name is nonetheless restricted to development. It is a convenience
+for a laptop, and on a live shop there is no reason to hand over one of the
+two things an attacker needs, however little it buys them.
+
 ## Cost of being wrong
 
 Low, which is what makes this the right default. If repeat clients start
