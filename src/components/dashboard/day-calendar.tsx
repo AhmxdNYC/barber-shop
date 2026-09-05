@@ -151,7 +151,7 @@ export function DayCalendar({
         <p className="text-xs text-bone-3">
           {blockMode
             ? "Drag a column to block out time."
-            : "Tap anything to manage it."}
+            : "Tap anything to manage it. Scroll from the clock on the left."}
         </p>
         <button
           type="button"
@@ -167,11 +167,15 @@ export function DayCalendar({
         </button>
       </div>
 
-      <div className="snap-x snap-proximity overflow-x-auto overscroll-x-contain scroll-pl-14 rounded-[3px] border border-line bg-surface">
+      <div className="snap-x snap-proximity scroll-pl-16 overflow-x-auto overscroll-x-contain rounded-[3px] border border-line bg-surface sm:scroll-pl-14">
       <div className="flex">
-        {/* The hour gutter stays put while the chairs pan past it. Panning
-            it off the side left a grid of unlabelled boxes. */}
-        <div className="sticky left-0 z-40 w-14 shrink-0 border-r border-line bg-surface pt-9">
+        {/* The hour gutter stays put while the chairs pan past it — panning
+            it off the side left a grid of unlabelled boxes — and it is the
+            one strip of the calendar that only ever scrolls the page.
+            pan-y refuses the sideways pan and, in block mode, the draw, so a
+            thumb parked on the clock always does the ordinary thing. Wider
+            on a phone, because it is now something you aim at. */}
+        <div className="sticky left-0 z-40 w-16 shrink-0 touch-pan-y border-r border-line bg-surface pt-9 sm:w-14">
           <div className="relative" style={{ height }}>
             {hourMarks.map((m) => (
               <span
