@@ -27,6 +27,8 @@ async function main() {
       state: SHOP.address.state,
       postalCode: SHOP.address.postalCode,
       depositCents: SHOP.depositCents,
+      // Cuts run back to back, so slots land on clean times.
+      bufferMinutes: 0,
       mapUrl: SHOP.mapUrl,
       instagramUrl: SHOP.instagram || null,
     },
@@ -35,6 +37,7 @@ async function main() {
       phone: SHOP.phone,
       addressLine1: SHOP.address.line1,
       city: SHOP.address.city,
+      bufferMinutes: 0,
     },
   });
 

@@ -54,7 +54,7 @@ export function DashboardNav({ name }: { name: string }) {
         </div>
 
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-bone-3">{name}</span>
+          <span className="font-semibold text-bone">{name}</span>
           <Link href="/" className="text-bone-2 hover:text-bone">
             View site
           </Link>

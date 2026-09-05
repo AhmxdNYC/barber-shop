@@ -26,11 +26,12 @@ const DEMO_DOMAIN = "@demo.example";
 let SHOP_TZ = "America/New_York";
 
 /**
- * Start times an hour and ten minutes apart — a sixty-minute cut plus the
- * shop's ten-minute buffer — so generated bookings never collide with the
- * exclusion constraint.
+ * Start times on the half hour, from opening at 10:30 to the last cut at
+ * 18:30. Sixty minutes apart, matching a sixty-minute service with no
+ * cleanup buffer, so bookings sit back to back and breaks can be placed at
+ * times a person would actually say out loud.
  */
-const START_MINUTES = [630, 700, 770, 840, 910, 980, 1050, 1120];
+const START_MINUTES = [630, 690, 750, 810, 870, 930, 990, 1050, 1110];
 
 /**
  * Each client has a rhythm and a reliability, because the two screens this
@@ -93,6 +94,28 @@ const CLIENTS: DemoClient[] = [
 const BUSY_FROM = "2026-09-03";
 const BUSY_TO = "2026-09-12";
 const BUSY_FILL = 0.88;
+
+/**
+ * Breaks, staggered so the shop is never empty at once.
+ *
+ * Each occupies one bookable slot, and the slot is reserved before any
+ * appointment is placed. Creating breaks afterwards — which the first
+ * version did — dropped an hour of lunch on top of bookings that were
+ * already there, so the calendar showed a barber cutting hair through his
+ * own break.
+ */
+const BREAKS = [
+  // Lunches are staggered so the shop is never empty at once.
+  { chair: 0, label: "Lunch", startMinutes: 750, length: 60, days: [1, 2, 3, 4, 5] },
+  { chair: 1, label: "Lunch", startMinutes: 810, length: 60, days: [1, 2, 3, 4, 5, 6] },
+  { chair: 2, label: "Lunch", startMinutes: 690, length: 60, days: [2, 3, 4, 5, 6] },
+  { chair: 3, label: "Lunch", startMinutes: 870, length: 60, days: [0, 2, 3, 4, 5] },
+  // The shorter, more particular ones that make a week look like a week.
+  { chair: 0, label: "School run", startMinutes: 990, length: 60, days: [3] },
+  { chair: 1, label: "College", startMinutes: 630, length: 60, days: [2, 4] },
+  { chair: 2, label: "Gym", startMinutes: 630, length: 60, days: [1, 3, 5] },
+  { chair: 3, label: "Supplier run", startMinutes: 1110, length: 60, days: [5] },
+] as const;
 
 function emailFor(name: string): string {
   return name.toLowerCase().replace(/[^a-z]+/g, ".") + DEMO_DOMAIN;
@@ -220,6 +243,46 @@ async function main() {
   const usualBarber = new Map<string, string>();
 
   /**
+   * Breaks first, so the diary is generated around them.
+   *
+   * Every slot a break covers is marked taken before a single appointment
+   * is placed, which is the only way a break and a booking cannot end up on
+   * top of each other.
+   */
+  for (const brk of BREAKS) {
+    const barber = barbers[brk.chair];
+    if (!barber) continue;
+
+    for (const dayOfWeek of brk.days) {
+      if (!openOn.has(`${barber.id}:${dayOfWeek}`)) continue;
+
+      await prisma.recurringBlock.create({
+        data: {
+          barberId: barber.id,
+          dayOfWeek,
+          startAtMinutes: brk.startMinutes,
+          endAtMinutes: brk.startMinutes + brk.length,
+          label: `[demo] ${brk.label}`,
+        },
+      });
+    }
+  }
+
+  /** Slots a recurring break covers on a given date. */
+  function breakSlots(date: string, barberId: string): number[] {
+    const dayOfWeek = weekdayOf(date);
+    const index = barbers.findIndex((b) => b.id === barberId);
+    return BREAKS.filter(
+      (brk) => brk.chair === index && (brk.days as readonly number[]).includes(dayOfWeek),
+    ).flatMap((brk) =>
+      START_MINUTES.filter(
+        (slot) =>
+          slot < brk.startMinutes + brk.length && brk.startMinutes < slot + 60,
+      ),
+    );
+  }
+
+  /**
    * Anything already booked, so generated appointments slot around it.
    *
    * The set used to track only what this run had placed, which assumed an
@@ -231,6 +294,15 @@ async function main() {
     where: { status: { not: "CANCELLED" } },
     select: { barberId: true, startsAt: true },
   });
+  for (let offset = -130; offset <= 70; offset++) {
+    const date = dayKey(offset);
+    for (const barber of barbers) {
+      for (const slot of breakSlots(date, barber.id)) {
+        taken.add(`${barber.id}:${date}:${slot}`);
+      }
+    }
+  }
+
   for (const appointment of existing) {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: SHOP_TZ,
@@ -242,7 +314,7 @@ async function main() {
     const minutes = Number(get("hour")) * 60 + Number(get("minute"));
     // Block the whole run of starts an existing booking could overlap.
     for (const slot of START_MINUTES) {
-      if (Math.abs(slot - minutes) < 70) {
+      if (Math.abs(slot - minutes) < 60) {
         taken.add(`${appointment.barberId}:${date}:${slot}`);
       }
     }
@@ -449,21 +521,9 @@ async function main() {
     });
   }
 
-  // A lunch break for the owner, and an afternoon off next week, so the
-  // calendar has gaps that are not simply unbooked.
+  // An afternoon off next week, so the calendar has a gap that is neither
+  // a break nor simply unbooked.
   const eduardo = barbers[0];
-  for (const dayOfWeek of [2, 3, 4, 5]) {
-    await prisma.recurringBlock.create({
-      data: {
-        barberId: eduardo.id,
-        dayOfWeek,
-        startAtMinutes: 840,
-        endAtMinutes: 900,
-        label: "[demo] Lunch",
-      },
-    });
-  }
-
   const off = dayKey(5);
   await prisma.timeOff.create({
     data: {

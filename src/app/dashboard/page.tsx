@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db/client";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { appointmentsForDay, dayStats } from "@/lib/dashboard/queries";
 import { scheduleForDay, upcomingTimeOff } from "@/lib/dashboard/day-schedule";
+import { clientBook } from "@/lib/dashboard/clients";
+import { agoInWords, cadenceInWords } from "@/lib/dashboard/format-relative";
 import { formatPrice } from "@/lib/shop";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { DayCalendar } from "@/components/dashboard/day-calendar";
@@ -33,7 +36,7 @@ export default async function DashboardPage({
   const settings = await prisma.shopSettings.findUnique({ where: { id: 1 } });
   const timeZone = settings?.timezone ?? "America/New_York";
 
-  const [appointments, stats, schedule, timeOff, barbers, shopHours] =
+  const [appointments, stats, schedule, timeOff, barbers, shopHours, book] =
     await Promise.all([
       appointmentsForDay(date),
       dayStats(date),
@@ -45,10 +48,28 @@ export default async function DashboardPage({
         select: { id: true, slug: true, name: true },
       }),
       prisma.shopHours.findMany({ orderBy: { dayOfWeek: "asc" } }),
+      clientBook(),
     ]);
+
+  // Regulars who have drifted, longest gone first — they are the ones most
+  // likely to have found another shop.
+  const overdue = book
+    .filter((c) => c.isDue)
+    .sort((a, b) => (b.daysSinceLastVisit ?? 0) - (a.daysSinceLastVisit ?? 0))
+    .slice(0, 6);
 
   const selectedBarber =
     barbers.find((b) => b.slug === barberParam) ?? barbers[0];
+
+  // Which chair belongs to whoever is signed in, so the calendar can put
+  // their own column forward.
+  const user = await getCurrentUser();
+  const ownBarber = user
+    ? await prisma.barber.findFirst({
+        where: { userId: user.userId },
+        select: { id: true },
+      })
+    : null;
 
   const [barberHours, blocks] = await Promise.all([
     selectedBarber
@@ -103,11 +124,6 @@ export default async function DashboardPage({
             }).format(date)}
           </h1>
         </div>
-        <nav className="flex gap-2 text-sm">
-          <Link href={shift(date, -1)} className={NAV_BUTTON}>&larr; Prev</Link>
-          <Link href="/dashboard" className={NAV_BUTTON}>Today</Link>
-          <Link href={shift(date, 1)} className={NAV_BUTTON}>Next &rarr;</Link>
-        </nav>
       </header>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -134,7 +150,25 @@ export default async function DashboardPage({
               out time.
             </p>
           </div>
-          <WalkInForm defaultStart={defaultWalkInStart(date, timeZone)} />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <nav className="flex items-center gap-1 rounded-[3px] border border-line p-1">
+              <Link href={shift(date, -1)} className={NAV_BUTTON} aria-label="Previous day">
+                &larr;
+              </Link>
+              <Link
+                href="/dashboard"
+                className={`${NAV_BUTTON} ${isToday ? "text-bone-3" : ""}`}
+                aria-current={isToday ? "page" : undefined}
+              >
+                Today
+              </Link>
+              <Link href={shift(date, 1)} className={NAV_BUTTON} aria-label="Next day">
+                &rarr;
+              </Link>
+            </nav>
+            <WalkInForm defaultStart={defaultWalkInStart(date, timeZone)} />
+          </div>
         </div>
 
         <div className="mt-4">
@@ -146,9 +180,64 @@ export default async function DashboardPage({
             appointments={sheetData}
             rescheduleDays={nextDays()}
             date={dateKeyFor(date, timeZone)}
+            ownBarberId={ownBarber?.id ?? null}
           />
         </div>
       </section>
+
+      {overdue.length > 0 && (
+        <section className="mt-12">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-bold">Due a cut</h2>
+              <p className="mt-0.5 text-sm text-bone-3">
+                Regulars past their usual gap with nothing booked. A message
+                is usually all it takes.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/clients"
+              className="text-sm text-bone-2 hover:text-bone"
+            >
+              All clients &rarr;
+            </Link>
+          </div>
+
+          <ul className="mt-4 divide-y divide-line overflow-hidden rounded-[3px] border border-line">
+            {overdue.map((client) => (
+              <li key={client.id} className="bg-surface">
+                <Link
+                  href={`/dashboard/clients/${client.id}`}
+                  className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3.5 transition-colors hover:bg-surface-2"
+                >
+                  <span className="font-semibold">
+                    {client.name ?? client.email}
+                  </span>
+                  <span className="text-sm text-danger">
+                    {agoInWords(client.daysSinceLastVisit)}
+                  </span>
+                  {client.averageGapDays !== null && (
+                    <span className="text-sm text-bone-3">
+                      usually {cadenceInWords(client.averageGapDays)}
+                    </span>
+                  )}
+                  {client.usualService && (
+                    <span className="text-sm text-bone-3">
+                      {client.usualService}
+                      {client.usualBarber && ` · ${client.usualBarber}`}
+                    </span>
+                  )}
+                  {client.phone && (
+                    <span className="ml-auto text-sm tabular-nums text-bone-2">
+                      {client.phone}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-12 grid gap-3">
         <h2 className="font-display text-xl font-bold">Schedule</h2>
@@ -211,7 +300,7 @@ export default async function DashboardPage({
 }
 
 const NAV_BUTTON =
-  "rounded-[3px] border border-line-strong px-4 py-2 hover:border-bone-3";
+  "rounded-[3px] px-3 py-1.5 text-sm transition-colors hover:bg-surface-2";
 
 function shift(date: Date, days: number): string {
   const d = new Date(date);

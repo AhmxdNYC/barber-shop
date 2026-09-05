@@ -39,6 +39,7 @@ export function DayCalendar({
   appointments,
   rescheduleDays,
   date,
+  ownBarberId,
 }: {
   days: BarberDay[];
   /** The shop's own opening hours, drawn behind every chair. */
@@ -50,6 +51,14 @@ export function DayCalendar({
   rescheduleDays: { date: string; weekday: string; dayNum: string }[];
   /** The day being viewed, "YYYY-MM-DD", for blocks dragged out. */
   date: string;
+  /**
+   * The chair belonging to whoever is signed in.
+   *
+   * A barber opens this to see his own day; the other chairs matter for
+   * cover and for fitting someone in, but they are context. Giving all four
+   * equal weight makes finding your own column a search every time.
+   */
+  ownBarberId?: string | null;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<SheetBlock | null>(null);
@@ -147,9 +156,22 @@ export function DayCalendar({
           </div>
         </div>
 
-        {days.map((day) => (
-          <div key={day.barberId} className="min-w-0 flex-1 border-r border-line last:border-r-0">
-            <h3 className="truncate border-b border-line px-3 py-2 text-sm font-semibold">
+        {days.map((day) => {
+          const isOwn = !ownBarberId || day.barberId === ownBarberId;
+          return (
+          <div
+            key={day.barberId}
+            className={`min-w-0 flex-1 border-r border-line last:border-r-0 ${
+              isOwn ? "" : "opacity-60"
+            }`}
+          >
+            <h3
+              className={`truncate border-b px-3 py-2 text-sm ${
+                isOwn
+                  ? "border-line font-semibold text-bone"
+                  : "border-line font-normal text-bone-2"
+              }`}
+            >
               {day.barberName}
               {day.isClosed && <span className="ml-2 text-xs text-bone-3">off</span>}
             </h3>
@@ -212,7 +234,8 @@ export function DayCalendar({
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {proposed && (
