@@ -96,7 +96,11 @@ export default async function RevenuePage({
           </p>
         )}
         <div className="mt-4">
-          <RevenueBars points={report.daily} />
+          <RevenueBars
+            points={report.daily}
+            totalCents={report.totalCents}
+            cuts={report.cuts}
+          />
         </div>
       </section>
 

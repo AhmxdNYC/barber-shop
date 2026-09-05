@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { SHOP, ADDRESS_LINE, formatHours } from "@/lib/shop";
 import { openingHours } from "@/lib/shop/opening-hours";
@@ -27,7 +28,16 @@ export default async function PosterPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">
       <div className="print:hidden">
-        <span className="eyebrow">For the shop</span>
+        {/* The poster is reached from the dashboard and from a QR code, and
+            had no way out of either. */}
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-bone-2 transition-colors hover:text-bone"
+        >
+          &larr; Back to dashboard
+        </Link>
+
+        <span className="eyebrow mt-6 block">For the shop</span>
         <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight">
           Scan-to-book poster
         </h1>

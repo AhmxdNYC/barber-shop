@@ -91,8 +91,12 @@ const CLIENTS: DemoClient[] = [
  * what actually demonstrates a calendar: gaps only mean something when
  * there is something around them.
  */
-const BUSY_FROM = "2026-09-03";
-const BUSY_TO = "2026-09-12";
+// Relative to today, so the packed stretch never goes stale. Reaching well
+// back matters as much as reaching forward: a future day can only ever say
+// "booked", so the completed cuts, no-shows and cancellations that show the
+// colour scheme off all live behind today.
+const BUSY_FROM_OFFSET = -12;
+const BUSY_TO_OFFSET = 8;
 const BUSY_FILL = 0.88;
 
 /**
@@ -433,10 +437,19 @@ async function main() {
   const busyDates: string[] = [];
   for (let offset = -120; offset <= 60; offset++) {
     const date = dayKey(offset);
-    if (date >= BUSY_FROM && date <= BUSY_TO) busyDates.push(date);
+    if (offset >= BUSY_FROM_OFFSET && offset <= BUSY_TO_OFFSET) {
+      busyDates.push(date);
+    }
   }
 
   const rightNow = nowMinutes();
+
+  // Anyone who has drifted must stay drifted: one future booking from the
+  // fill is enough to take them off the overdue list, which is the whole
+  // thing that list exists to show.
+  const bookable = clients.filter(
+    (c) => !CLIENTS.find((t) => t.name === c.name)?.overdue,
+  );
 
   for (const date of busyDates) {
     const dayOfWeek = weekdayOf(date);
@@ -456,7 +469,7 @@ async function main() {
         // calendar, so they are seeded on slots that went on to be filled
         // and on the gaps they explain.
         if (Math.random() < 0.07) {
-          const dropped = pick(clients);
+          const dropped = pick(bookable);
           const droppedService = pick(services);
           const droppedStart = at(date, minutes);
           rows.push({
@@ -478,7 +491,7 @@ async function main() {
 
         if (Math.random() > BUSY_FILL) continue;
 
-        const client = pick(clients);
+        const client = pick(bookable);
         const service = pick(services);
         const startsAt = at(date, minutes);
 

@@ -115,18 +115,7 @@ export default async function DashboardPage({
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="eyebrow">{relativeDay(date)}</span>
-          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">
-            {new Intl.DateTimeFormat("en-US", {
-              weekday: "long", month: "long", day: "numeric", timeZone,
-            }).format(date)}
-          </h1>
-        </div>
-      </header>
-
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Booked" value={String(stats.booked)} />
         <StatTile label="Completed" value={String(stats.completed)} />
         <StatTile
@@ -144,11 +133,12 @@ export default async function DashboardPage({
       <section className="mt-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-xl font-bold">The day</h2>
-            <p className="mt-0.5 text-sm text-bone-3">
-              Tap anything to manage it. Drag down an empty column to block
-              out time.
-            </p>
+            <span className="eyebrow">{relativeDay(date)}</span>
+            <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight">
+              {new Intl.DateTimeFormat("en-US", {
+                weekday: "long", month: "long", day: "numeric", timeZone,
+              }).format(date)}
+            </h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -171,7 +161,7 @@ export default async function DashboardPage({
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <DayCalendar
             days={schedule.barbers}
             shop={schedule.shop}
@@ -183,6 +173,10 @@ export default async function DashboardPage({
             ownBarberId={ownBarber?.id ?? null}
           />
         </div>
+        <p className="mt-2 text-xs text-bone-3">
+          Tap anything to manage it. Drag down an empty column to block out
+          time.
+        </p>
       </section>
 
       {overdue.length > 0 && (

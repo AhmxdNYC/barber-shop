@@ -42,6 +42,13 @@
   --color-brass-dim: #0d1f14;
 
   /* Trouble: no-shows, cancellations, validation. */
+  /* Time the barber has taken out of the day. Grey read as "empty slot"
+     rather than "deliberately unavailable", which is the opposite of what
+     a block means. Amber sits clear of booked blue, done green and
+     no-show red. */
+  --color-off: #d9a441;
+  --color-off-dim: #241a08;
+
   --color-danger: #f43f5e;
   --color-danger-dim: #2a0f16;
 
@@ -310,5 +317,15 @@
     45deg,
     transparent 0 6px,
     color-mix(in srgb, var(--color-line) 55%, transparent) 6px 7px
+  );
+}
+
+/* Blocked time. The hatching says "nothing goes here" faster than any
+   label, and survives being scaled down to a fifteen-minute sliver. */
+.block-off {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-off) 13%, transparent) 0 5px,
+    transparent 5px 11px
   );
 }

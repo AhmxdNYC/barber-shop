@@ -9,8 +9,10 @@ import {
 import { openingHours } from "@/lib/shop/opening-hours";
 import { liveServices } from "@/lib/shop/live-services";
 import { barbersWithPhotos, galleryPhotos } from "@/lib/shop/gallery";
+import { shopRating } from "@/lib/shop/rating";
 import { BarberGrid } from "@/components/barber-grid";
 import { ShopMap } from "@/components/shop-map";
+import { ShopRating } from "@/components/shop-rating";
 import { ButtonLink } from "@/components/ui/button";
 import { Wordmark } from "@/components/ui/wordmark";
 
@@ -19,10 +21,11 @@ const todayIndex = () => new Date().getDay();
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [services, hours, photos] = await Promise.all([
+  const [services, hours, photos, rating] = await Promise.all([
     liveServices(),
     openingHours(),
     galleryPhotos(),
+    shopRating(),
   ]);
   const withPhotos = new Set(barbersWithPhotos(photos).map((b) => b.slug));
   const popular = services.filter((s) => s.popular);
@@ -48,7 +51,9 @@ export default async function HomePage() {
             className="block max-w-4xl text-6xl leading-[1.05] sm:text-8xl lg:text-9xl"
           />
 
-          <p className="mt-7 max-w-xl text-lg leading-relaxed text-bone-2 sm:text-xl">
+          <ShopRating rating={rating} />
+
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-bone-2 sm:text-xl">
             {SHOP.tagline}
           </p>
 

@@ -12,8 +12,21 @@ import type { RevenuePoint } from "@/lib/dashboard/revenue";
  * Numbers are now shown only when there is room for them. Beyond that the
  * chart carries a scale line, an average, and labels on a readable subset,
  * so the shape reads at any range and exact figures stay one hover away.
+ *
+ * The takings lead the panel. The busiest-day and average figures used to
+ * run along the top, which is exactly where the tallest bar arrives on a
+ * good day — the better the week, the more the chart covered its own
+ * caption. They now sit under the axis, out of the bars' way.
  */
-export function RevenueBars({ points }: { points: RevenuePoint[] }) {
+export function RevenueBars({
+  points,
+  totalCents,
+  cuts,
+}: {
+  points: RevenuePoint[];
+  totalCents: number;
+  cuts: number;
+}) {
   const max = Math.max(...points.map((p) => p.cents), 1);
   const earning = points.filter((p) => p.cents > 0);
   const average = earning.length
@@ -32,20 +45,17 @@ export function RevenueBars({ points }: { points: RevenuePoint[] }) {
 
   return (
     <div className="rounded-[3px] border border-line bg-surface p-5">
-      <div className="flex items-baseline justify-between gap-4 text-sm">
-        <span className="text-bone-3">
-          Busiest day{" "}
-          <span className="tabular-nums text-bone">
-            {best ? formatPrice(best.cents) : "—"}
-          </span>
-        </span>
-        <span className="text-bone-3">
-          Average of days worked{" "}
-          <span className="tabular-nums text-bone">{formatPrice(average)}</span>
-        </span>
-      </div>
+      <span className="eyebrow">Taken</span>
+      <p className="mt-1 font-display text-4xl font-extrabold tabular-nums tracking-tight">
+        {formatPrice(totalCents)}
+      </p>
+      <p className="mt-1 text-sm text-bone-3">
+        {cuts} cut{cuts === 1 ? "" : "s"} across{" "}
+        {earning.length} day{earning.length === 1 ? "" : "s"} worked
+      </p>
 
-      <div className="relative mt-5" style={{ height: 190 }}>
+      {/* Headroom so a record day clears the figure above it. */}
+      <div className="relative mt-7" style={{ height: 190 }}>
         {/* A line at the average, so a day reads as good or bad at a glance
             rather than only relative to the tallest bar. */}
         {average > 0 && (
@@ -106,7 +116,20 @@ export function RevenueBars({ points }: { points: RevenuePoint[] }) {
         ))}
       </div>
 
-      <p className="mt-4 border-t border-line pt-3 text-xs text-bone-3">
+      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-line pt-3 text-sm">
+        <span className="text-bone-3">
+          Busiest day{" "}
+          <span className="tabular-nums text-bone">
+            {best ? formatPrice(best.cents) : "—"}
+          </span>
+        </span>
+        <span className="text-bone-3">
+          Average of days worked{" "}
+          <span className="tabular-nums text-bone">{formatPrice(average)}</span>
+        </span>
+      </div>
+
+      <p className="mt-3 text-xs text-bone-3">
         Empty bars are days with no completed work — a closed day looks the
         same as a quiet one, so check the calendar before reading too much
         into a gap.

@@ -321,8 +321,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 const BLOCK_STYLES: Record<ScheduleBlock["kind"], string> = {
   appointment: "border-accent bg-accent-dim text-bone",
-  break: "border-line-strong bg-surface-2 text-bone-3",
-  timeoff: "border-line-strong bg-surface-2 text-bone-3",
+  break: "block-off border-off/45 bg-off-dim text-off",
+  timeoff: "block-off border-off/45 bg-off-dim text-off",
 };
 
 function Block({
