@@ -167,15 +167,20 @@ export function DayCalendar({
         </button>
       </div>
 
-      <div className="snap-x snap-proximity scroll-pl-16 overflow-x-auto overscroll-x-contain rounded-[3px] border border-line bg-surface sm:scroll-pl-14">
-      <div className="flex">
-        {/* The hour gutter stays put while the chairs pan past it — panning
-            it off the side left a grid of unlabelled boxes — and it is the
-            one strip of the calendar that only ever scrolls the page.
-            pan-y refuses the sideways pan and, in block mode, the draw, so a
-            thumb parked on the clock always does the ordinary thing. Wider
-            on a phone, because it is now something you aim at. */}
-        <div className="sticky left-0 z-40 w-16 shrink-0 touch-pan-y border-r border-line bg-surface pt-9 sm:w-14">
+      <div className="flex overflow-hidden rounded-[3px] border border-line bg-surface">
+        {/*
+          The clock sits outside the pannable strip, not pinned inside it.
+          Pinned, it stayed where it looked like it should be but a touch on
+          it was still a touch on the scroller, so the one place meant for
+          putting a thumb down and moving the page was the one place that
+          would not. Out here it is an ordinary column of the page and does
+          the ordinary thing.
+
+          It still never scrolls away from the chairs, because it is no
+          longer in the thing that scrolls. Wider on a phone: it went from a
+          label to something you aim at.
+        */}
+        <div className="w-16 shrink-0 border-r border-line pt-9 sm:w-14">
           <div className="relative" style={{ height }}>
             {hourMarks.map((m) => (
               <span
@@ -189,6 +194,7 @@ export function DayCalendar({
           </div>
         </div>
 
+        <div className="flex min-w-0 flex-1 snap-x snap-proximity overflow-x-auto overscroll-x-contain">
         {days.map((day) => {
           const isOwn = !ownBarberId || day.barberId === ownBarberId;
           return (
