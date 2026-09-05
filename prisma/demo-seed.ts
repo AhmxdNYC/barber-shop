@@ -22,7 +22,6 @@ const prisma = new PrismaClient({
 });
 
 const DEMO_DOMAIN = "@demo.example";
-const DAY = 24 * 60 * 60 * 1000;
 
 /**
  * Start times an hour and ten minutes apart — a sixty-minute cut plus the

@@ -12,12 +12,6 @@ import {
   STAFF_HINT_COOKIE_OPTIONS,
   createSessionToken,
 } from "@/lib/auth/session";
-import {
-  MAGIC_LINK_LIMITS,
-  isMagicLinkRateLimited,
-  issueMagicLink,
-} from "@/lib/auth/magic-link";
-import { sendBarberSignInLink } from "@/lib/notifications/send";
 import { isLoginThrottled, recordLoginAttempt } from "@/lib/auth/throttle";
 
 const Credentials = z.object({
@@ -92,53 +86,14 @@ export async function logoutAction() {
   redirect("/login");
 }
 
-
-export type MagicLinkState = { sent?: boolean; error?: string };
-
-/**
- * Emails a sign-in link.
- *
- * The answer is the same whether or not the address belongs to a barber, so
- * this cannot be used to discover who works at the shop.
- */
-export async function requestMagicLinkAction(
-  _previous: MagicLinkState,
-  formData: FormData,
-): Promise<MagicLinkState> {
-  const parsed = z
-    .object({ email: z.string().trim().email().max(200) })
-    .safeParse({ email: formData.get("email") });
-
-  if (!parsed.success) return { sent: true };
-
-  const email = parsed.data.email.toLowerCase();
-
-  if (await isMagicLinkRateLimited(email)) {
-    return { error: "Too many sign-in links requested. Try again shortly." };
-  }
-
-  const issued = await issueMagicLink(email);
-  if (issued) {
-    const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-    await sendBarberSignInLink(email, {
-      name: issued.name,
-      url: `${base}/login/verify?token=${issued.token}`,
-      expiryMinutes: MAGIC_LINK_LIMITS.EXPIRY_MINUTES,
-    });
-  }
-
-  return { sent: true };
-}
-
-
 /**
  * Finds an account by address, or by the name in front of the @.
  *
- * "eduardo" is a great deal easier to type on a phone than
- * "eduardo@eduardos.com", and a shop with four staff does not need the
- * ceremony of full addresses. A bare name is only accepted when it matches
- * exactly one account, so this can never quietly sign someone into the
- * wrong one.
+ * "eduardo" is easier to type on a phone than a full address, and a shop
+ * with four staff does not need the ceremony. A bare name is only accepted
+ * when it matches exactly one account, so it can never quietly sign someone
+ * into the wrong one — and only outside production, where the identifier is
+ * one of two things an attacker has to supply.
  */
 async function resolveAccount(input: string) {
   const value = input.trim().toLowerCase();
@@ -147,9 +102,6 @@ async function resolveAccount(input: string) {
     return prisma.user.findUnique({ where: { email: value } });
   }
 
-  // Outside development the full address is required. A username is not a
-  // secret, but it is still one of the two things an attacker has to supply,
-  // and there is no reason to hand it over on a live shop.
   if (process.env.NODE_ENV === "production") return null;
 
   const matches = await prisma.user.findMany({
