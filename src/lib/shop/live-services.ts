@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/client";
-import type { Service } from "./services";
+import { SERVICES, type Service } from "./services";
+import { withFallback } from "@/lib/db/available";
 
 /**
  * The live service menu.
@@ -11,6 +12,10 @@ import type { Service } from "./services";
  * and worse, because it is about money.
  */
 export async function liveServices(): Promise<Service[]> {
+  return withFallback(readServices, SERVICES);
+}
+
+async function readServices(): Promise<Service[]> {
   const rows = await prisma.service.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },

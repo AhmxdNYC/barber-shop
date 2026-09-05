@@ -4,6 +4,7 @@ import { z } from "zod";
 import { slotsForAnyBarber, slotsForBarber } from "@/lib/availability/query";
 import { createAppointment } from "@/lib/booking/create-appointment";
 import { prisma } from "@/lib/db/client";
+import { hasDatabaseUrl } from "@/lib/db/available";
 import { formatMinutes } from "@/lib/shop";
 import type { BookingResult, TimeSlot } from "@/lib/booking/types";
 
@@ -25,6 +26,10 @@ const AvailabilityInput = z.object({
 export async function getAvailabilityAction(
   raw: unknown,
 ): Promise<TimeSlot[]> {
+  // Offering times from seed content would be offering slots nobody can
+  // actually hold, so an unconfigured database shows none rather than lying.
+  if (!hasDatabaseUrl) return [];
+
   const parsed = AvailabilityInput.safeParse(raw);
   if (!parsed.success) return [];
 
@@ -85,6 +90,15 @@ const BookingInput = z.object({
  * browser — including the barber and service, which the client controls.
  */
 export async function createBookingAction(raw: unknown): Promise<BookingResult> {
+  if (!hasDatabaseUrl) {
+    return {
+      ok: false,
+      reason: "provider_error",
+      message:
+        "Online booking is not switched on yet. Please call the shop and we will get you in.",
+    };
+  }
+
   const parsed = BookingInput.safeParse(raw);
   if (!parsed.success) {
     return {

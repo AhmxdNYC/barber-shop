@@ -30,12 +30,15 @@ export function BookingFlow({
   services,
   initialBarber,
   initialService,
+  bookingUnavailable = false,
 }: {
   days: CalendarDay[];
   /** The live menu, so a price edited in the dashboard shows here at once. */
   services: Service[];
   initialBarber: string | null;
   initialService: string | null;
+  /** No booking backend configured — say so rather than showing empty days. */
+  bookingUnavailable?: boolean;
 }) {
   // Deep links from a barber or service card skip the steps they answer.
   const [step, setStep] = useState<Step>(
@@ -157,6 +160,7 @@ export function BookingFlow({
             onPickSlot={setSlot}
             onBack={() => setStep(1)}
             onContinue={() => setStep(3)}
+            bookingUnavailable={bookingUnavailable}
           />
         ))}
 

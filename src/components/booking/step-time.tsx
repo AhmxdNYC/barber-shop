@@ -20,6 +20,7 @@ export function StepTime({
   onPickSlot,
   onBack,
   onContinue,
+  bookingUnavailable = false,
 }: {
   service: Service;
   barberSlug: string | null;
@@ -31,6 +32,8 @@ export function StepTime({
   onPickSlot: (slot: TimeSlot) => void;
   onBack: () => void;
   onContinue: () => void;
+  /** True when no booking backend is configured, so an empty day is not "full". */
+  bookingUnavailable?: boolean;
 }) {
   const barber = barberSlug ? getBarber(barberSlug) : undefined;
   const openCount = slots?.filter((s) => s.available).length ?? 0;
@@ -63,7 +66,9 @@ export function StepTime({
           <SlotSkeleton />
         ) : slots.length === 0 ? (
           <p className="rounded-[3px] border border-line bg-surface p-6 text-center text-bone-2">
-            Nothing open that day. Try another.
+            {bookingUnavailable
+              ? "Online booking isn’t switched on yet — call the shop and we’ll get you in."
+              : "Nothing open that day. Try another."}
           </p>
         ) : (
           <>

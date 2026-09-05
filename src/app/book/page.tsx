@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { liveServices } from "@/lib/shop/live-services";
 import { openingHours } from "@/lib/shop/opening-hours";
+import { hasDatabaseUrl } from "@/lib/db/available";
 import { BookingFlow } from "@/components/booking/booking-flow";
 import type { CalendarDay } from "@/components/booking/types";
 
@@ -65,6 +66,7 @@ export default async function BookPage({
       services={services}
       initialBarber={params.barber ?? null}
       initialService={params.service ?? null}
+      bookingUnavailable={!hasDatabaseUrl}
     />
   );
 }

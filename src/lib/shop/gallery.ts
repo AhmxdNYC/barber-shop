@@ -2,6 +2,8 @@ import "server-only";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/db/client";
+import { withFallback } from "@/lib/db/available";
+import { BARBERS } from "./barbers";
 
 /**
  * The cut gallery, read from the files on disk.
@@ -56,9 +58,12 @@ export async function galleryPhotos(): Promise<GalleryPhoto[]> {
     return [];
   }
 
-  const barbers = await prisma.barber.findMany({
-    select: { slug: true, name: true },
-  });
+  // Photographs live in the repository; only the names attached to them
+  // need a database, and the roster is in the seed content too.
+  const barbers = await withFallback(
+    () => prisma.barber.findMany({ select: { slug: true, name: true } }),
+    BARBERS.map((b) => ({ slug: b.slug, name: b.name })),
+  );
   const nameBySlug = new Map(barbers.map((b) => [b.slug, b.name]));
 
   const loose: GalleryPhoto[] = entries

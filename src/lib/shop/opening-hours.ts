@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/client";
-import type { DayHours } from "./hours";
+import { HOURS, type DayHours } from "./hours";
+import { withFallback } from "@/lib/db/available";
 
 /**
  * The shop's published opening hours.
@@ -20,6 +21,10 @@ const DAY_NAMES = [
 const SHORT_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
 export async function openingHours(): Promise<DayHours[]> {
+  return withFallback(readOpeningHours, HOURS);
+}
+
+async function readOpeningHours(): Promise<DayHours[]> {
   const rows = await prisma.shopHours.findMany();
   const byDay = new Map(rows.map((r) => [r.dayOfWeek, r]));
 
