@@ -1,0 +1,19 @@
+# The CLI deploys local files, not the git tree, so .gitignore does not
+# apply. Without this, .env is uploaded and the build picks up a local
+# DATABASE_URL pointing at localhost — which is unreachable from a build
+# server and fails the deployment. It also puts local secrets somewhere
+# they have no reason to be.
+.env
+.env.*
+!.env.example
+
+node_modules
+.next
+.git
+
+# Never needed to serve the site.
+prisma/migrations
+docs
+*.test.ts
+coverage
+playwright-report
