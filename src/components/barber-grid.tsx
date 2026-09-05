@@ -16,14 +16,14 @@ export function BarberGrid({
   barbersWithWork: Set<string>;
 }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
       {BARBERS.map((barber) => (
-        <div key={barber.slug} className="flex flex-col gap-2">
+        <div key={barber.slug} className="flex flex-col gap-1.5 sm:gap-2">
           <BarberCard barber={barber} href={`/book?barber=${barber.slug}`} />
           {barbersWithWork.has(barber.slug) && (
             <Link
               href={`/gallery?barber=${barber.slug}`}
-              className="rounded-[3px] border border-line px-4 py-2.5 text-center text-sm font-semibold text-bone-2 transition-colors hover:border-line-strong hover:text-bone"
+              className="rounded-[3px] border border-line px-4 py-1.5 text-center text-xs font-semibold text-bone-2 transition-colors hover:border-line-strong hover:text-bone sm:py-2.5 sm:text-sm"
             >
               See their work
             </Link>

@@ -139,10 +139,11 @@ export function DayCalendar({
   }
 
   return (
-    <div className="overflow-x-auto rounded-[3px] border border-line bg-surface">
-      <div className="flex min-w-[560px]">
-        {/* hour gutter */}
-        <div className="w-14 shrink-0 border-r border-line pt-9">
+    <div className="snap-x snap-proximity overflow-x-auto overscroll-x-contain rounded-[3px] border border-line bg-surface">
+      <div className="flex">
+        {/* The hour gutter stays put while the chairs pan past it. Panning
+            it off the side left a grid of unlabelled boxes. */}
+        <div className="sticky left-0 z-40 w-14 shrink-0 border-r border-line bg-surface pt-9">
           <div className="relative" style={{ height }}>
             {hourMarks.map((m) => (
               <span
@@ -161,7 +162,7 @@ export function DayCalendar({
           return (
           <div
             key={day.barberId}
-            className={`min-w-0 flex-1 border-r border-line last:border-r-0 ${
+            className={`w-[9.5rem] shrink-0 snap-start border-r border-line last:border-r-0 sm:w-auto sm:min-w-0 sm:flex-1 ${
               isOwn ? "" : "opacity-60"
             }`}
           >
@@ -177,7 +178,11 @@ export function DayCalendar({
             </h3>
 
             <div
-              className="relative touch-pan-y select-none"
+              className={`relative touch-auto select-none ${
+                drag?.barberId === day.barberId
+                  ? "bg-accent-dim/30 ring-1 ring-inset ring-accent/40"
+                  : ""
+              }`}
               style={{ height }}
               {...dragHandlers(day.barberId)}
             >

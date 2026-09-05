@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   blockTimeFromCalendarAction,
   type ActionState,
@@ -201,6 +201,22 @@ export function DragPreview({
   );
 }
 
+/**
+ * How long a finger must rest before a drag begins.
+ *
+ * A calendar column is most of a phone screen, so the same downward swipe
+ * means both "scroll the page" and "block out an hour". The browser decides
+ * which the moment the finger moves, and it always chose scrolling — so
+ * blocking time out by touch was a fight the barber usually lost.
+ *
+ * Resting first says which one is meant, the way it does on every phone
+ * calendar. A swipe scrolls, a hold draws.
+ */
+const HOLD_MS = 320;
+
+/** Movement before the hold fires that means this was a scroll, not a hold. */
+const HOLD_SLOP_PX = 8;
+
 /** Tracks a pointer drag over a calendar column and reports the range. */
 export function useColumnDrag({
   pxPerMinute,
@@ -217,6 +233,35 @@ export function useColumnDrag({
     current: number;
   } | null>(null);
 
+  /** A touch that is down but has not yet earned a drag. */
+  const held = useRef<{
+    timer: ReturnType<typeof setTimeout>;
+    barberId: string;
+    at: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  function cancelHold() {
+    if (!held.current) return;
+    clearTimeout(held.current.timer);
+    held.current = null;
+  }
+
+  // Once a drag is under way the page must hold still, and touch-action
+  // cannot say so: the browser fixes a touch's meaning when the finger lands,
+  // and the class on the column has already promised it may scroll. A
+  // non-passive listener can still refuse each move, which is what keeps the
+  // page from sliding out from under a block being stretched.
+  useEffect(() => {
+    if (!drag) return;
+    const hold = (event: TouchEvent) => event.preventDefault();
+    document.addEventListener("touchmove", hold, { passive: false });
+    return () => document.removeEventListener("touchmove", hold);
+  }, [drag]);
+
+  useEffect(() => cancelHold, []);
+
   function minutesAt(event: React.PointerEvent<HTMLElement>): number {
     const bounds = event.currentTarget.getBoundingClientRect();
     const offsetPx = event.clientY - bounds.top;
@@ -230,30 +275,72 @@ export function useColumnDrag({
       if (event.button !== 0) return;
       if ((event.target as HTMLElement).closest("[data-block]")) return;
       const at = minutesAt(event);
-      event.currentTarget.setPointerCapture(event.pointerId);
-      setDrag({ barberId, anchor: at, current: at });
+
+      // A mouse has a scroll wheel and cannot be mistaken for one, so it
+      // draws immediately.
+      if (event.pointerType === "mouse") {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDrag({ barberId, anchor: at, current: at });
+        return;
+      }
+
+      const column = event.currentTarget;
+      const pointerId = event.pointerId;
+      cancelHold();
+      held.current = {
+        barberId,
+        at,
+        x: event.clientX,
+        y: event.clientY,
+        timer: setTimeout(() => {
+          held.current = null;
+          column.setPointerCapture(pointerId);
+          setDrag({ barberId, anchor: at, current: at });
+        }, HOLD_MS),
+      };
     };
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLElement>) {
+    // Moving before the hold lands means a scroll was meant. Let it go.
+    const waiting = held.current;
+    if (waiting) {
+      const moved =
+        Math.abs(event.clientX - waiting.x) + Math.abs(event.clientY - waiting.y);
+      if (moved > HOLD_SLOP_PX) cancelHold();
+      return;
+    }
     if (!drag) return;
     setDrag({ ...drag, current: minutesAt(event) });
   }
 
   function onPointerUp() {
+    // Let go before the hold landed: a tap, which proposes a default length
+    // rather than doing nothing — doing nothing read as the calendar being
+    // broken.
+    const waiting = held.current;
+    if (waiting) {
+      cancelHold();
+      onComplete(waiting.barberId, waiting.at, waiting.at + TAP_BLOCK_MINUTES);
+      return;
+    }
+
     if (!drag) return;
     const start = Math.min(drag.anchor, drag.current);
     const dragged = Math.max(drag.anchor, drag.current) - start;
     setDrag(null);
-    // A tap proposes a default length rather than doing nothing, which read
-    // as the calendar being unresponsive.
     const end = dragged >= SNAP_MINUTES ? start + dragged : start + TAP_BLOCK_MINUTES;
     onComplete(drag.barberId, start, end);
   }
 
+  function onPointerCancel() {
+    cancelHold();
+    setDrag(null);
+  }
+
   return {
     drag,
-    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: () => setDrag(null) },
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
   };
 }
 
