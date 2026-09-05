@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
+import { isNavActive } from "@/lib/nav-active";
 import { SHOP } from "@/lib/shop";
 
 const LINKS = [
@@ -13,6 +17,8 @@ const LINKS = [
 ];
 
 export function DashboardNav({ name }: { name: string }) {
+  const pathname = usePathname();
+
   return (
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
@@ -22,12 +28,28 @@ export function DashboardNav({ name }: { name: string }) {
               {SHOP.name}
             </span>
           </Link>
-          <nav className="flex gap-5 text-sm">
-            {LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="text-bone-2 hover:text-bone">
-                {l.label}
-              </Link>
-            ))}
+          <nav className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            {LINKS.map((l) => {
+              // "Today" is /dashboard, which prefixes every other route in
+              // the section, so it only counts as current when exact.
+              const active = isNavActive(pathname, l.href, {
+                exact: l.href === "/dashboard",
+              });
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`border-b-2 pb-0.5 transition-colors ${
+                    active
+                      ? "border-bone font-semibold text-bone"
+                      : "border-transparent text-bone-3 hover:text-bone-2"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 

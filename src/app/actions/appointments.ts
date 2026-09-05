@@ -264,3 +264,66 @@ export async function barberRescheduleAction(
   revalidatePath("/dashboard");
   return { moved: true };
 }
+
+
+/**
+ * Puts a completed or no-show appointment back to booked.
+ *
+ * Marking is one tap by design, which means it is one tap to get wrong —
+ * and a no-show is not a neutral mistake. It sits on the client's record,
+ * shows on their card the next time they come in, and in a shop that takes
+ * deposits it decides whether they lose money. Anything that easy to do
+ * has to be that easy to undo.
+ *
+ * The client's counters are rolled back too, since completing and
+ * no-showing move them forward.
+ */
+export async function reopenAppointmentAction(formData: FormData) {
+  await requireBarber();
+  const { id } = Id.parse({ id: formData.get("id") });
+
+  const appointment = await prisma.appointment.findUnique({
+    where: { id },
+    select: { id: true, clientId: true, priceCents: true, status: true },
+  });
+  if (!appointment) return;
+  if (appointment.status !== "COMPLETED" && appointment.status !== "NO_SHOW") {
+    return;
+  }
+
+  const wasCompleted = appointment.status === "COMPLETED";
+
+  await prisma.$transaction(async (tx) => {
+    await tx.appointment.update({
+      where: { id },
+      data: { status: "CONFIRMED" },
+    });
+
+    await tx.client.update({
+      where: { id: appointment.clientId },
+      data: wasCompleted
+        ? {
+            visitCount: { decrement: 1 },
+            totalSpentCents: { decrement: appointment.priceCents },
+          }
+        : { noShowCount: { decrement: 1 } },
+    });
+
+    if (wasCompleted) {
+      // lastVisitAt pointed at this appointment if it was the most recent,
+      // so it is recomputed from what actually remains.
+      const latest = await tx.appointment.findFirst({
+        where: { clientId: appointment.clientId, status: "COMPLETED" },
+        orderBy: { startsAt: "desc" },
+        select: { startsAt: true },
+      });
+      await tx.client.update({
+        where: { id: appointment.clientId },
+        data: { lastVisitAt: latest?.startsAt ?? null },
+      });
+    }
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/clients");
+}

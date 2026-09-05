@@ -65,7 +65,32 @@ const CLIENTS: DemoClient[] = [
   { name: "Nico Ferrante", every: 14, missRate: 0, overdue: true, note: "Used to be in every fortnight." },
   { name: "Owen Blake", every: 30, missRate: 0.1 },
   { name: "Victor Salas", every: 21, missRate: 0 },
+  { name: "Elias Mendoza", every: 21, missRate: 0 },
+  { name: "Rashid Karim", every: 28, missRate: 0.05 },
+  { name: "Gio Battaglia", every: 14, missRate: 0 },
+  { name: "Malik Osei", every: 35, missRate: 0 },
+  { name: "Diego Navarro", every: 21, missRate: 0.1 },
+  { name: "Curtis Lang", every: 28, missRate: 0 },
+  { name: "Bilal Rahman", every: 21, missRate: 0 },
+  { name: "Frankie DeLuca", every: 42, missRate: 0.05 },
+  { name: "Omar Haddad", every: 14, missRate: 0 },
+  { name: "Trey Donovan", every: 28, missRate: 0 },
+  { name: "Kofi Boateng", every: 21, missRate: 0 },
+  { name: "Sal Vitale", every: 35, missRate: 0 },
 ];
+
+/**
+ * A stretch the shop is genuinely rammed.
+ *
+ * The rhythm-based history above produces a believable diary but a quiet
+ * one — each client only appears every few weeks, so no single day looks
+ * like a working Saturday. This fills a named window almost solid, which is
+ * what actually demonstrates a calendar: gaps only mean something when
+ * there is something around them.
+ */
+const BUSY_FROM = "2026-09-03";
+const BUSY_TO = "2026-09-12";
+const BUSY_FILL = 0.88;
 
 function emailFor(name: string): string {
   return name.toLowerCase().replace(/[^a-z]+/g, ".") + DEMO_DOMAIN;
@@ -254,6 +279,59 @@ async function main() {
     // not, which is exactly what puts them in front of the barber.
     if (!trait.overdue && Math.random() < 0.75) {
       place(client, trait, Math.round(Math.random() * 12) + 1, "CONFIRMED");
+    }
+  }
+
+  // Fill the busy window. Runs after the histories so it only takes slots
+  // those left free, and every booking still belongs to a real client with
+  // a real past rather than a name invented on the spot.
+  const busyStart = new Date(`${BUSY_FROM}T12:00:00`);
+  const busyEnd = new Date(`${BUSY_TO}T12:00:00`);
+  const today = dayStart(0);
+
+  for (
+    let day = new Date(busyStart);
+    day <= busyEnd;
+    day.setDate(day.getDate() + 1)
+  ) {
+    const at0 = dayStart(
+      Math.round((new Date(day).setHours(0, 0, 0, 0) - today.getTime()) / 86_400_000),
+    );
+    const dayOfWeek = at0.getDay();
+    const past = at0 < today;
+
+    for (const barber of barbers) {
+      if (!openOn.has(`${barber.id}:${dayOfWeek}`)) continue;
+
+      for (const minutes of START_MINUTES) {
+        if (taken.has(`${barber.id}:${at0.toDateString()}:${minutes}`)) continue;
+        if (Math.random() > BUSY_FILL) continue;
+
+        const client = pick(clients);
+        const service = pick(services);
+        const startsAt = at(at0, minutes);
+
+        taken.add(`${barber.id}:${at0.toDateString()}:${minutes}`);
+        rows.push({
+          clientId: client.id,
+          clientName: client.name ?? "Client",
+          clientEmail: client.email,
+          clientPhone: client.phone,
+          barberId: barber.id,
+          serviceId: service.id,
+          startsAt,
+          endsAt: new Date(
+            startsAt.getTime() +
+              (service.durationMinutes + bufferMinutes) * 60_000,
+          ),
+          status: past
+            ? Math.random() < 0.07
+              ? "NO_SHOW"
+              : "COMPLETED"
+            : "CONFIRMED",
+          priceCents: service.priceCents,
+        });
+      }
     }
   }
 

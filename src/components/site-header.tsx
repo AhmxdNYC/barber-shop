@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useStaffHint } from "@/lib/auth/use-staff-hint";
+import { isNavActive } from "@/lib/nav-active";
 import { Wordmark } from "@/components/ui/wordmark";
 
 const NAV = [
@@ -33,13 +34,16 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-8 md:flex">
           {NAV.map((item) => {
-            const active = pathname === item.href;
+            const active = isNavActive(pathname, item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm transition-colors hover:text-bone ${
-                  active ? "text-bone" : "text-bone-2"
+                aria-current={active ? "page" : undefined}
+                className={`border-b-2 pb-0.5 text-sm transition-colors ${
+                  active
+                    ? "border-bone text-bone"
+                    : "border-transparent text-bone-2 hover:text-bone"
                 }`}
               >
                 {item.label}

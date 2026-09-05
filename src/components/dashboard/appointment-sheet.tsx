@@ -7,6 +7,7 @@ import {
   cancelAppointmentAction,
   completeAppointmentAction,
   markNoShowAction,
+  reopenAppointmentAction,
   type BarberRescheduleState,
 } from "@/app/actions/appointments";
 import { Button } from "@/components/ui/button";
@@ -115,9 +116,30 @@ export function AppointmentSheet({
         )}
 
         {finished ? (
-          <p className="mt-6 rounded-[3px] border border-line bg-surface-2 px-4 py-3 text-sm text-bone-3">
-            Marked {appointment.status === "COMPLETED" ? "done" : "as a no-show"}.
-          </p>
+          <div className="mt-6">
+            <p
+              className={`rounded-[3px] border px-4 py-3 text-sm ${
+                appointment.status === "NO_SHOW"
+                  ? "border-danger bg-danger-dim text-bone"
+                  : "border-brass bg-brass-dim text-bone"
+              }`}
+            >
+              {appointment.status === "COMPLETED"
+                ? "Marked done."
+                : "Marked as a no-show — it is on their record."}
+            </p>
+            {/* One tap to mark, so one tap to unmark. A no-show follows a
+                client around and should never be stuck after a misfire. */}
+            <form action={reopenAppointmentAction} className="mt-3">
+              <input type="hidden" name="id" value={appointment.id} />
+              <button
+                type="submit"
+                className={`${ACTION} border-line-strong hover:border-bone-3`}
+              >
+                Undo &mdash; put it back to booked
+              </button>
+            </form>
+          </div>
         ) : rescheduling ? (
           <RescheduleBlock
             id={appointment.id}

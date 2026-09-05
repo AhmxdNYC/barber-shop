@@ -130,8 +130,8 @@ export default async function DashboardPage({
           <div>
             <h2 className="font-display text-xl font-bold">The day</h2>
             <p className="mt-0.5 text-sm text-bone-3">
-              Tap an appointment to manage it. Drag down an empty column to
-              block out time.
+              Tap anything to manage it. Drag down an empty column to block
+              out time.
             </p>
           </div>
           <WalkInForm defaultStart={defaultWalkInStart(date, timeZone)} />

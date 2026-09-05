@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { minutesToTimeInput } from "@/lib/shop";
 import { AppointmentSheet, type SheetAppointment } from "./appointment-sheet";
+import { BlockSheet, type SheetBlock } from "./block-sheet";
 import {
   DragPreview,
   DragToBlockDialog,
@@ -48,6 +49,7 @@ export function DayCalendar({
   date: string;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedBlock, setSelectedBlock] = useState<SheetBlock | null>(null);
   const [proposed, setProposed] = useState<DragRange | null>(null);
   const open = days.filter((d) => !d.isClosed);
 
@@ -79,6 +81,23 @@ export function DayCalendar({
         endMinutes,
       }),
   });
+
+  /** What tapping a block does, which depends on what kind of block it is. */
+  function selectHandler(block: ScheduleBlock, barberName: string) {
+    if (block.kind === "appointment") {
+      return appointments[block.id] ? () => setSelected(block.id) : undefined;
+    }
+    const kind = block.kind;
+    return () =>
+      setSelectedBlock({
+        id: block.id,
+        kind,
+        title: block.title,
+        barberName,
+        when: `${label(block.startMinutes)} – ${label(block.endMinutes)}`,
+        repeats: kind === "break",
+      });
+  }
 
   const dragHandlers = (barberId: string) => ({
     onPointerDown: handlers.onPointerDown(barberId),
@@ -150,11 +169,7 @@ export function DayCalendar({
                   key={block.id}
                   block={block}
                   from={from}
-                  onSelect={
-                    block.kind === "appointment" && appointments[block.id]
-                      ? () => setSelected(block.id)
-                      : undefined
-                  }
+                  onSelect={selectHandler(block, day.barberName)}
                 />
               ))}
 
@@ -188,6 +203,13 @@ export function DayCalendar({
         />
       )}
 
+      {selectedBlock && (
+        <BlockSheet
+          block={selectedBlock}
+          onClose={() => setSelectedBlock(null)}
+        />
+      )}
+
       {selected && appointments[selected] && (
         <AppointmentSheet
           appointment={appointments[selected]}
@@ -210,10 +232,25 @@ function Shade({ top, height }: { top: number; height: number }) {
   );
 }
 
+/**
+ * Colour carries the state of an appointment.
+ *
+ * Reading a day should not mean opening every square. Green is settled work,
+ * red is a client who did not turn up, blue is still to come, and anything
+ * grey is not a booking at all. Status is also spelled out in the text, so
+ * the colour is a shortcut rather than the only signal.
+ */
+const STATUS_STYLES: Record<string, string> = {
+  COMPLETED: "border-brass bg-brass-dim text-bone",
+  NO_SHOW: "border-danger bg-danger-dim text-bone",
+  CONFIRMED: "border-accent bg-accent-dim text-bone",
+  PENDING_PAYMENT: "border-dashed border-line-strong bg-surface-2 text-bone-2",
+};
+
 const BLOCK_STYLES: Record<ScheduleBlock["kind"], string> = {
-  appointment: "border-brass bg-brass-dim text-bone",
+  appointment: "border-accent bg-accent-dim text-bone",
   break: "border-line-strong bg-surface-2 text-bone-3",
-  timeoff: "border-accent bg-accent-dim text-bone-2",
+  timeoff: "border-line-strong bg-surface-2 text-bone-3",
 };
 
 function Block({
@@ -230,12 +267,10 @@ function Block({
     18,
     (block.endMinutes - block.startMinutes) * PX_PER_MINUTE,
   );
-  const isNoShow = block.status === "NO_SHOW";
-  const isDone = block.status === "COMPLETED";
+  const style =
+    (block.status && STATUS_STYLES[block.status]) ?? BLOCK_STYLES[block.kind];
 
-  const className = `absolute inset-x-1 z-10 overflow-hidden rounded-[3px] border px-2 py-1 text-left ${
-    BLOCK_STYLES[block.kind]
-  } ${isNoShow ? "border-accent bg-accent-dim" : ""} ${isDone ? "opacity-55" : ""} ${
+  const className = `absolute inset-x-1 z-10 overflow-hidden rounded-[3px] border px-2 py-1 text-left ${style} ${
     onSelect ? "cursor-pointer hover:brightness-125" : ""
   }`;
 
