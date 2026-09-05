@@ -160,6 +160,18 @@ function at(date: string, minutes: number): Date {
   return fromZonedTime(`${date}T${hh}:${mm}:00`, SHOP_TZ);
 }
 
+/** Minutes past shop-local midnight, right now. */
+function nowMinutes(): number {
+  const p = new Intl.DateTimeFormat("en-US", {
+    timeZone: SHOP_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => Number(p.find((x) => x.type === t)?.value ?? 0);
+  return get("hour") * 60 + get("minute");
+}
+
 /** Day of week for a calendar date, without going through a local Date. */
 function weekdayOf(date: string): number {
   const [y, m, d] = date.split("-").map(Number);
@@ -424,15 +436,46 @@ async function main() {
     if (date >= BUSY_FROM && date <= BUSY_TO) busyDates.push(date);
   }
 
+  const rightNow = nowMinutes();
+
   for (const date of busyDates) {
     const dayOfWeek = weekdayOf(date);
-    const past = date < today;
 
     for (const barber of barbers) {
       if (!openOn.has(`${barber.id}:${dayOfWeek}`)) continue;
 
       for (const minutes of START_MINUTES) {
         if (taken.has(`${barber.id}:${date}:${minutes}`)) continue;
+
+        // A cut is finished once the clock has passed it. Splitting on the
+        // day alone left today entirely unstarted, so the busiest view in
+        // the app — this morning — showed nothing that had happened yet.
+        const finished = date < today || (date === today && minutes + 60 <= rightNow);
+
+        // Cancellations are the one status that leaves no trace on the
+        // calendar, so they are seeded on slots that went on to be filled
+        // and on the gaps they explain.
+        if (Math.random() < 0.07) {
+          const dropped = pick(clients);
+          const droppedService = pick(services);
+          const droppedStart = at(date, minutes);
+          rows.push({
+            clientId: dropped.id,
+            clientName: dropped.name ?? "Client",
+            clientEmail: dropped.email,
+            clientPhone: dropped.phone,
+            barberId: barber.id,
+            serviceId: droppedService.id,
+            startsAt: droppedStart,
+            endsAt: new Date(
+              droppedStart.getTime() +
+                (droppedService.durationMinutes + bufferMinutes) * 60_000,
+            ),
+            status: "CANCELLED",
+            priceCents: droppedService.priceCents,
+          });
+        }
+
         if (Math.random() > BUSY_FILL) continue;
 
         const client = pick(clients);
@@ -452,8 +495,8 @@ async function main() {
             startsAt.getTime() +
               (service.durationMinutes + bufferMinutes) * 60_000,
           ),
-          status: past
-            ? Math.random() < 0.07
+          status: finished
+            ? Math.random() < 0.11
               ? "NO_SHOW"
               : "COMPLETED"
             : "CONFIRMED",
