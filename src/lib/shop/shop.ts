@@ -12,7 +12,8 @@ export const SHOP = {
    * The shop has four, and the line now says the thing most likely to stop
    * someone booking: that there is no account to make.
    */
-  tagline: "Four chairs, no sign-up. Book the time, get the cut.",
+  tagline:
+    "Four chairs. No app, no account \u2014 a name and a number is all it takes. Book the time, get the cut.",
   phone: "(914) 476-5347",
   email: "", // TODO: ask the shop. Empty hides it in the UI.
   address: {

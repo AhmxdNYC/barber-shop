@@ -508,11 +508,17 @@ async function main() {
             startsAt.getTime() +
               (service.durationMinutes + bufferMinutes) * 60_000,
           ),
+          // Upcoming days carry no-shows too. Strictly a booking cannot be
+          // missed before it happens, so this is fiction — but a calendar
+          // being demonstrated is paged forwards, and a week of nothing but
+          // blue says nothing about what the app does with a missed cut.
           status: finished
             ? Math.random() < 0.11
               ? "NO_SHOW"
               : "COMPLETED"
-            : "CONFIRMED",
+            : Math.random() < 0.09
+              ? "NO_SHOW"
+              : "CONFIRMED",
           priceCents: service.priceCents,
         });
       }
