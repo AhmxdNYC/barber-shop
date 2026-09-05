@@ -25,10 +25,18 @@ export type ScheduleBlock = {
 export type BarberDay = {
   barberId: string;
   barberName: string;
+  /** The barber's own hours, narrowed to the shop's. */
   opensAtMinutes: number;
   closesAtMinutes: number;
   isClosed: boolean;
   blocks: ScheduleBlock[];
+};
+
+/** When the shop itself is open, which bounds every chair. */
+export type ShopDay = {
+  opensAtMinutes: number;
+  closesAtMinutes: number;
+  isClosed: boolean;
 };
 
 /** Minutes from midnight for an instant, in the shop's timezone. */
@@ -46,9 +54,18 @@ function localMinutes(instant: Date, timeZone: string): number {
 export async function scheduleForDay(
   date: Date,
   timeZone: string,
-): Promise<BarberDay[]> {
+): Promise<{ barbers: BarberDay[]; shop: ShopDay }> {
   const { start, end } = dayBounds(date);
   const dayOfWeek = date.getDay();
+
+  const shopHours = await prisma.shopHours.findUnique({ where: { dayOfWeek } });
+  const shop: ShopDay = shopHours
+    ? {
+        opensAtMinutes: shopHours.opensAtMinutes,
+        closesAtMinutes: shopHours.closesAtMinutes,
+        isClosed: shopHours.isClosed,
+      }
+    : { opensAtMinutes: 600, closesAtMinutes: 1200, isClosed: false };
 
   const barbers = await prisma.barber.findMany({
     where: { isActive: true },
@@ -74,7 +91,7 @@ export async function scheduleForDay(
     },
   });
 
-  return barbers.map((barber) => {
+  const days = barbers.map((barber) => {
     const hours = barber.workingHours[0];
 
     const blocks: ScheduleBlock[] = [
@@ -104,15 +121,22 @@ export async function scheduleForDay(
       })),
     ].sort((a, b) => a.startMinutes - b.startMinutes);
 
+    // The shop bounds the chair: a barber cannot work before it opens or
+    // after it shuts, so the calendar should not draw him as available then.
+    const opens = Math.max(hours?.opensAtMinutes ?? 600, shop.opensAtMinutes);
+    const closes = Math.min(hours?.closesAtMinutes ?? 1200, shop.closesAtMinutes);
+
     return {
       barberId: barber.id,
       barberName: barber.name,
-      opensAtMinutes: hours?.opensAtMinutes ?? 600,
-      closesAtMinutes: hours?.closesAtMinutes ?? 1200,
-      isClosed: hours?.isClosed ?? true,
+      opensAtMinutes: opens,
+      closesAtMinutes: closes,
+      isClosed: (hours?.isClosed ?? true) || shop.isClosed || closes <= opens,
       blocks,
     };
   });
+
+  return { barbers: days, shop };
 }
 
 /** Upcoming time off across all barbers, for the "what's coming" panel. */

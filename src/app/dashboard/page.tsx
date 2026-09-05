@@ -139,7 +139,8 @@ export default async function DashboardPage({
 
         <div className="mt-4">
           <DayCalendar
-            days={schedule}
+            days={schedule.barbers}
+            shop={schedule.shop}
             nowMinutes={nowMinutes}
             isToday={isToday}
             appointments={sheetData}

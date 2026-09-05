@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { createHash, randomBytes } from "node:crypto";
+import { fromZonedTime } from "date-fns-tz";
 
 /**
  * Realistic demo data.
@@ -22,6 +23,7 @@ const prisma = new PrismaClient({
 });
 
 const DEMO_DOMAIN = "@demo.example";
+let SHOP_TZ = "America/New_York";
 
 /**
  * Start times an hour and ten minutes apart — a sixty-minute cut plus the
@@ -100,16 +102,45 @@ function phoneFor(index: number): string {
   return `914-555-${String(1000 + index * 7).slice(-4)}`;
 }
 
-/** Local midnight, so a day's slots land where the shop expects them. */
-function dayStart(offsetDays: number): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + offsetDays);
-  return d;
+/**
+ * A calendar date, as "YYYY-MM-DD" in the shop's timezone.
+ *
+ * The previous version built days from the machine's local midnight and
+ * added minutes to it. That is wrong even when the machine happens to be in
+ * the shop's timezone — arithmetic on a Date is arithmetic on an instant,
+ * and adding 630 minutes to midnight does not reliably land on 10:30 local
+ * across a DST boundary. It produced appointments hours outside opening
+ * hours, which then collided with time the calendar was drawing as free.
+ *
+ * Everything is now built the way the application builds it: a wall-clock
+ * time in the shop's timezone, converted once.
+ */
+function dayKey(offsetDays: number): string {
+  const now = new Date();
+  const shopToday = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SHOP_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+  const [y, m, d] = shopToday.split("-").map(Number);
+  // Built in UTC so the arithmetic cannot slip an hour, then read back as
+  // plain calendar parts.
+  const shifted = new Date(Date.UTC(y, m - 1, d + offsetDays));
+  return shifted.toISOString().slice(0, 10);
 }
 
-function at(day: Date, minutes: number): Date {
-  return new Date(day.getTime() + minutes * 60_000);
+/** A shop-local wall-clock time on that date, as a real instant. */
+function at(date: string, minutes: number): Date {
+  const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const mm = String(minutes % 60).padStart(2, "0");
+  return fromZonedTime(`${date}T${hh}:${mm}:00`, SHOP_TZ);
+}
+
+/** Day of week for a calendar date, without going through a local Date. */
+function weekdayOf(date: string): number {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
 function pick<T>(items: T[]): T {
@@ -151,6 +182,7 @@ async function main() {
   if (barbers.length === 0 || services.length === 0 || !settings) {
     throw new Error("Run `npm run db:seed` first — there is no shop to book into.");
   }
+  SHOP_TZ = settings.timezone;
   // Narrowing does not survive into the closures below.
   const bufferMinutes = settings.bufferMinutes;
 
@@ -187,6 +219,35 @@ async function main() {
   const taken = new Set<string>();
   const usualBarber = new Map<string, string>();
 
+  /**
+   * Anything already booked, so generated appointments slot around it.
+   *
+   * The set used to track only what this run had placed, which assumed an
+   * empty diary. A single appointment left behind by anything else — a real
+   * booking, a stray test row — collided with the exclusion constraint and
+   * failed the whole seed partway through, leaving the data half written.
+   */
+  const existing = await prisma.appointment.findMany({
+    where: { status: { not: "CANCELLED" } },
+    select: { barberId: true, startsAt: true },
+  });
+  for (const appointment of existing) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: SHOP_TZ,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).formatToParts(appointment.startsAt);
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+    const date = `${get("year")}-${get("month")}-${get("day")}`;
+    const minutes = Number(get("hour")) * 60 + Number(get("minute"));
+    // Block the whole run of starts an existing booking could overlap.
+    for (const slot of START_MINUTES) {
+      if (Math.abs(slot - minutes) < 70) {
+        taken.add(`${appointment.barberId}:${date}:${slot}`);
+      }
+    }
+  }
+
   type Row = {
     clientId: string;
     clientName: string;
@@ -202,11 +263,10 @@ async function main() {
   const rows: Row[] = [];
 
   /** A free start on this day for this barber, or null if the day is full. */
-  function freeSlot(day: Date, barberId: string): number | null {
-    const dayOfWeek = day.getDay();
-    if (!openOn.has(`${barberId}:${dayOfWeek}`)) return null;
+  function freeSlot(date: string, barberId: string): number | null {
+    if (!openOn.has(`${barberId}:${weekdayOf(date)}`)) return null;
     const options = START_MINUTES.filter(
-      (m) => !taken.has(`${barberId}:${day.toDateString()}:${m}`),
+      (m) => !taken.has(`${barberId}:${date}:${m}`),
     );
     if (options.length === 0) return null;
     return pick(options);
@@ -224,14 +284,14 @@ async function main() {
     usualBarber.set(client.id, preferred);
 
     for (const drift of [0, 1, -1, 2, -2, 3]) {
-      const day = dayStart(targetOffset + drift);
+      const date = dayKey(targetOffset + drift);
       for (const barberId of [preferred, ...barbers.map((b) => b.id)]) {
-        const minutes = freeSlot(day, barberId);
+        const minutes = freeSlot(date, barberId);
         if (minutes === null) continue;
 
-        taken.add(`${barberId}:${day.toDateString()}:${minutes}`);
+        taken.add(`${barberId}:${date}:${minutes}`);
         const service = pick(services);
-        const startsAt = at(day, minutes);
+        const startsAt = at(date, minutes);
 
         rows.push({
           clientId: client.id,
@@ -285,33 +345,29 @@ async function main() {
   // Fill the busy window. Runs after the histories so it only takes slots
   // those left free, and every booking still belongs to a real client with
   // a real past rather than a name invented on the spot.
-  const busyStart = new Date(`${BUSY_FROM}T12:00:00`);
-  const busyEnd = new Date(`${BUSY_TO}T12:00:00`);
-  const today = dayStart(0);
+  const today = dayKey(0);
+  const busyDates: string[] = [];
+  for (let offset = -120; offset <= 60; offset++) {
+    const date = dayKey(offset);
+    if (date >= BUSY_FROM && date <= BUSY_TO) busyDates.push(date);
+  }
 
-  for (
-    let day = new Date(busyStart);
-    day <= busyEnd;
-    day.setDate(day.getDate() + 1)
-  ) {
-    const at0 = dayStart(
-      Math.round((new Date(day).setHours(0, 0, 0, 0) - today.getTime()) / 86_400_000),
-    );
-    const dayOfWeek = at0.getDay();
-    const past = at0 < today;
+  for (const date of busyDates) {
+    const dayOfWeek = weekdayOf(date);
+    const past = date < today;
 
     for (const barber of barbers) {
       if (!openOn.has(`${barber.id}:${dayOfWeek}`)) continue;
 
       for (const minutes of START_MINUTES) {
-        if (taken.has(`${barber.id}:${at0.toDateString()}:${minutes}`)) continue;
+        if (taken.has(`${barber.id}:${date}:${minutes}`)) continue;
         if (Math.random() > BUSY_FILL) continue;
 
         const client = pick(clients);
         const service = pick(services);
-        const startsAt = at(at0, minutes);
+        const startsAt = at(date, minutes);
 
-        taken.add(`${barber.id}:${at0.toDateString()}:${minutes}`);
+        taken.add(`${barber.id}:${date}:${minutes}`);
         rows.push({
           clientId: client.id,
           clientName: client.name ?? "Client",
@@ -408,7 +464,7 @@ async function main() {
     });
   }
 
-  const off = dayStart(5);
+  const off = dayKey(5);
   await prisma.timeOff.create({
     data: {
       barberId: eduardo.id,

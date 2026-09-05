@@ -301,3 +301,14 @@
       transparent 70%
     );
 }
+
+/* Time the calendar cannot offer: hatched rather than merely dark, so it
+   reads as unavailable instead of as an empty stretch of free day. */
+.closed-shade {
+  background-color: color-mix(in srgb, var(--color-ground) 82%, transparent);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 6px,
+    color-mix(in srgb, var(--color-line) 55%, transparent) 6px 7px
+  );
+}

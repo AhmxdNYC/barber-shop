@@ -10,7 +10,7 @@ import {
   useColumnDrag,
   type DragRange,
 } from "./drag-to-block";
-import type { BarberDay, ScheduleBlock } from "@/lib/dashboard/day-schedule";
+import type { BarberDay, ScheduleBlock, ShopDay } from "@/lib/dashboard/day-schedule";
 
 /**
  * The day as a calendar, one column per chair.
@@ -35,11 +35,14 @@ export function DayCalendar({
   days,
   nowMinutes,
   isToday,
+  shop,
   appointments,
   rescheduleDays,
   date,
 }: {
   days: BarberDay[];
+  /** The shop's own opening hours, drawn behind every chair. */
+  shop: ShopDay;
   nowMinutes: number;
   isToday: boolean;
   /** Detail for each appointment block, keyed by id. */
@@ -56,12 +59,16 @@ export function DayCalendar({
   // One shared vertical scale, so columns line up across chairs. Computed
   // before any early return, because the drag hook below depends on it and
   // hooks cannot run conditionally.
-  const from = open.length
-    ? Math.floor(Math.min(...open.map((d) => d.opensAtMinutes)) / 60) * 60
-    : 0;
-  const to = open.length
-    ? Math.ceil(Math.max(...open.map((d) => d.closesAtMinutes)) / 60) * 60
-    : 0;
+  // The scale covers the shop's whole day, not just the hours somebody is
+  // working, so closed time is visible as closed rather than simply missing.
+  const earliest = open.length
+    ? Math.min(shop.opensAtMinutes, ...open.map((d) => d.opensAtMinutes))
+    : shop.opensAtMinutes;
+  const latest = open.length
+    ? Math.max(shop.closesAtMinutes, ...open.map((d) => d.closesAtMinutes))
+    : shop.closesAtMinutes;
+  const from = Math.floor(earliest / 60) * 60;
+  const to = Math.ceil(latest / 60) * 60;
   const height = (to - from) * PX_PER_MINUTE;
 
   const hourMarks: number[] = [];
@@ -106,10 +113,18 @@ export function DayCalendar({
     onPointerCancel: handlers.onPointerCancel,
   });
 
+  if (shop.isClosed) {
+    return (
+      <p className="rounded-[3px] border border-line bg-surface p-8 text-center text-bone-2">
+        The shop is closed today. Nothing can be booked.
+      </p>
+    );
+  }
+
   if (open.length === 0) {
     return (
       <p className="rounded-[3px] border border-line bg-surface p-8 text-center text-bone-2">
-        Nobody is working today.
+        The shop is open, but nobody is working.
       </p>
     );
   }
@@ -155,14 +170,19 @@ export function DayCalendar({
               {/* Outside working hours, shaded so free time inside them reads clearly. */}
               {!day.isClosed && (
                 <>
-                  <Shade top={0} height={(day.opensAtMinutes - from) * PX_PER_MINUTE} />
+                  <Shade
+                    top={0}
+                    height={(day.opensAtMinutes - from) * PX_PER_MINUTE}
+                    label={day.opensAtMinutes > shop.opensAtMinutes ? "Not in" : "Closed"}
+                  />
                   <Shade
                     top={(day.closesAtMinutes - from) * PX_PER_MINUTE}
                     height={(to - day.closesAtMinutes) * PX_PER_MINUTE}
+                    label={day.closesAtMinutes < shop.closesAtMinutes ? "Finished" : "Closed"}
                   />
                 </>
               )}
-              {day.isClosed && <Shade top={0} height={height} />}
+              {day.isClosed && <Shade top={0} height={height} label="Off" />}
 
               {day.blocks.map((block) => (
                 <Block
@@ -221,14 +241,35 @@ export function DayCalendar({
   );
 }
 
-function Shade({ top, height }: { top: number; height: number }) {
+/**
+ * Time that cannot be booked, drawn rather than left blank.
+ *
+ * An empty stretch at the top of a column reads as free. Labelling it says
+ * which kind of unavailable it is — the shop shut, or this barber not in —
+ * which are different problems with different fixes.
+ */
+function Shade({
+  top,
+  height,
+  label,
+}: {
+  top: number;
+  height: number;
+  label?: string;
+}) {
   if (height <= 0) return null;
   return (
     <div
-      className="absolute inset-x-0 bg-ground/60"
+      className="closed-shade absolute inset-x-0 flex items-center justify-center"
       style={{ top, height }}
       aria-hidden="true"
-    />
+    >
+      {label && height > 26 && (
+        <span className="text-[0.6rem] uppercase tracking-[0.14em] text-bone-3">
+          {label}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -245,6 +286,14 @@ const STATUS_STYLES: Record<string, string> = {
   NO_SHOW: "border-danger bg-danger-dim text-bone",
   CONFIRMED: "border-accent bg-accent-dim text-bone",
   PENDING_PAYMENT: "border-dashed border-line-strong bg-surface-2 text-bone-2",
+};
+
+/** Spelled out, so colour is a shortcut rather than the only signal. */
+const STATUS_LABELS: Record<string, string> = {
+  COMPLETED: "Done",
+  NO_SHOW: "No-show",
+  CONFIRMED: "Booked",
+  PENDING_PAYMENT: "Unpaid hold",
 };
 
 const BLOCK_STYLES: Record<ScheduleBlock["kind"], string> = {
@@ -288,16 +337,20 @@ function Block({
       <p className="truncate text-[0.7rem] font-semibold leading-tight">
         {block.title}
       </p>
-      {height > 32 && block.subtitle && (
+      {height > 30 && block.subtitle && (
         <p className="truncate text-[0.65rem] leading-tight opacity-75">
           {block.subtitle}
         </p>
       )}
-      {height > 46 && (
-        <p className="mt-0.5 text-[0.6rem] tabular-nums opacity-60">
-          {minutesToTimeInput(block.startMinutes)}
+      {height > 48 && block.status && STATUS_LABELS[block.status] && (
+        <p className="mt-0.5 text-[0.6rem] uppercase tracking-[0.08em] opacity-70">
+          {STATUS_LABELS[block.status]}
         </p>
       )}
+      {/* No third line repeating the time: the block is positioned against
+          an hour gutter and sized by its length, so printing 14:00 inside it
+          restated what the position already said — in 24-hour form, next to
+          a gutter labelled in 12-hour. */}
     </Tag>
   );
 }
