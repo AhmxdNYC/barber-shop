@@ -30,6 +30,9 @@ export async function withFallback<T>(
   try {
     return await read();
   } catch (error) {
+    // Covers a database that is asleep or unreachable *and* a client that
+    // could not be constructed, since the client is now built lazily on
+    // first use and can therefore throw here rather than at import.
     console.error("Database read failed; serving seed content.", error);
     return fallback;
   }
