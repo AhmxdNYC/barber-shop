@@ -202,29 +202,30 @@ export function DragPreview({
 }
 
 /**
- * How long a finger must rest before a drag begins.
+ * Tracks a pointer drag over a calendar column and reports the range.
  *
- * A calendar column is most of a phone screen, so the same downward swipe
- * means both "scroll the page" and "block out an hour". The browser decides
- * which the moment the finger moves, and it always chose scrolling — so
- * blocking time out by touch was a fight the barber usually lost.
+ * A column is most of a phone screen, so a finger moving down it means both
+ * "scroll the page" and "block out an hour" and something has to say which.
+ * Two attempts at guessing failed. Letting the browser decide meant it
+ * always chose scrolling, and blocking time out by touch never worked.
+ * Requiring the finger to rest first meant a pause before a scroll — which
+ * is how people scroll — grabbed the page and held it still.
  *
- * Resting first says which one is meant, the way it does on every phone
- * calendar. A swipe scrolls, a hold draws.
+ * There is no gesture that reliably means one and not the other, so the
+ * calendar stops guessing and asks: `blockMode` is a switch above the grid.
+ * Off, touch only ever scrolls and taps. On, it only ever draws. A mouse is
+ * never ambiguous — it has a wheel — so it drags in either mode.
  */
-const HOLD_MS = 320;
-
-/** Movement before the hold fires that means this was a scroll, not a hold. */
-const HOLD_SLOP_PX = 8;
-
-/** Tracks a pointer drag over a calendar column and reports the range. */
 export function useColumnDrag({
   pxPerMinute,
   fromMinutes,
+  blockMode,
   onComplete,
 }: {
   pxPerMinute: number;
   fromMinutes: number;
+  /** Whether a finger on a column draws rather than scrolls. */
+  blockMode: boolean;
   onComplete: (barberId: string, startMinutes: number, endMinutes: number) => void;
 }) {
   const [drag, setDrag] = useState<{
@@ -233,34 +234,19 @@ export function useColumnDrag({
     current: number;
   } | null>(null);
 
-  /** A touch that is down but has not yet earned a drag. */
-  const held = useRef<{
-    timer: ReturnType<typeof setTimeout>;
-    barberId: string;
-    at: number;
-    x: number;
-    y: number;
-  } | null>(null);
+  /** A tap that has not yet become a drag, so a released tap still counts. */
+  const tapped = useRef<{ barberId: string; at: number } | null>(null);
 
-  function cancelHold() {
-    if (!held.current) return;
-    clearTimeout(held.current.timer);
-    held.current = null;
-  }
-
-  // Once a drag is under way the page must hold still, and touch-action
-  // cannot say so: the browser fixes a touch's meaning when the finger lands,
-  // and the class on the column has already promised it may scroll. A
-  // non-passive listener can still refuse each move, which is what keeps the
-  // page from sliding out from under a block being stretched.
+  // While a drag is under way the page holds still. touch-action alone
+  // cannot do this: the browser fixes a touch's meaning when the finger
+  // lands, so a class set afterwards arrives too late. Refusing each move
+  // works at any point.
   useEffect(() => {
     if (!drag) return;
     const hold = (event: TouchEvent) => event.preventDefault();
     document.addEventListener("touchmove", hold, { passive: false });
     return () => document.removeEventListener("touchmove", hold);
   }, [drag]);
-
-  useEffect(() => cancelHold, []);
 
   function minutesAt(event: React.PointerEvent<HTMLElement>): number {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -276,38 +262,22 @@ export function useColumnDrag({
       if ((event.target as HTMLElement).closest("[data-block]")) return;
       const at = minutesAt(event);
 
-      // A mouse has a scroll wheel and cannot be mistaken for one, so it
-      // draws immediately.
-      if (event.pointerType === "mouse") {
-        event.currentTarget.setPointerCapture(event.pointerId);
-        setDrag({ barberId, anchor: at, current: at });
+      // A finger outside block mode is scrolling. Remember where it landed
+      // so that letting go without moving still counts as a tap.
+      if (event.pointerType !== "mouse" && !blockMode) {
+        tapped.current = { barberId, at };
         return;
       }
 
-      const column = event.currentTarget;
-      const pointerId = event.pointerId;
-      cancelHold();
-      held.current = {
-        barberId,
-        at,
-        x: event.clientX,
-        y: event.clientY,
-        timer: setTimeout(() => {
-          held.current = null;
-          column.setPointerCapture(pointerId);
-          setDrag({ barberId, anchor: at, current: at });
-        }, HOLD_MS),
-      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setDrag({ barberId, anchor: at, current: at });
     };
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLElement>) {
-    // Moving before the hold lands means a scroll was meant. Let it go.
-    const waiting = held.current;
-    if (waiting) {
-      const moved =
-        Math.abs(event.clientX - waiting.x) + Math.abs(event.clientY - waiting.y);
-      if (moved > HOLD_SLOP_PX) cancelHold();
+    // Any movement outside block mode is a scroll, not a tap.
+    if (tapped.current) {
+      tapped.current = null;
       return;
     }
     if (!drag) return;
@@ -315,13 +285,12 @@ export function useColumnDrag({
   }
 
   function onPointerUp() {
-    // Let go before the hold landed: a tap, which proposes a default length
-    // rather than doing nothing — doing nothing read as the calendar being
-    // broken.
-    const waiting = held.current;
-    if (waiting) {
-      cancelHold();
-      onComplete(waiting.barberId, waiting.at, waiting.at + TAP_BLOCK_MINUTES);
+    // A still finger, lifted: propose a default length rather than doing
+    // nothing, which read as the calendar being broken.
+    const tap = tapped.current;
+    if (tap) {
+      tapped.current = null;
+      onComplete(tap.barberId, tap.at, tap.at + TAP_BLOCK_MINUTES);
       return;
     }
 
@@ -334,7 +303,7 @@ export function useColumnDrag({
   }
 
   function onPointerCancel() {
-    cancelHold();
+    tapped.current = null;
     setDrag(null);
   }
 

@@ -173,7 +173,7 @@ export default async function DashboardPage({
             ownBarberId={ownBarber?.id ?? null}
           />
         </div>
-        <p className="mt-2 text-xs text-bone-3">
+        <p className="mt-2 hidden text-xs text-bone-3 sm:block">
           Tap anything to manage it. Drag down an empty column to block out
           time.
         </p>

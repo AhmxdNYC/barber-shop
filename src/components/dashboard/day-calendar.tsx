@@ -63,6 +63,9 @@ export function DayCalendar({
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<SheetBlock | null>(null);
   const [proposed, setProposed] = useState<DragRange | null>(null);
+  // Off by default: reading the day is what this is opened for, and blocking
+  // time out is occasional. Desktop ignores it — a mouse can drag either way.
+  const [blockMode, setBlockMode] = useState(false);
   const open = days.filter((d) => !d.isClosed);
 
   // One shared vertical scale, so columns line up across chairs. Computed
@@ -89,6 +92,7 @@ export function DayCalendar({
   const { drag, handlers } = useColumnDrag({
     pxPerMinute: PX_PER_MINUTE,
     fromMinutes: from,
+    blockMode,
     onComplete: (barberId, startMinutes, endMinutes) =>
       setProposed({
         barberId,
@@ -139,7 +143,31 @@ export function DayCalendar({
   }
 
   return (
-    <div className="snap-x snap-proximity overflow-x-auto overscroll-x-contain rounded-[3px] border border-line bg-surface">
+    <>
+      {/* Touch only. A finger moving down a column means both "scroll" and
+          "block out an hour", and no gesture reliably separates them, so the
+          calendar asks instead of guessing. */}
+      <div className="mb-2 flex items-center justify-between gap-3 sm:hidden">
+        <p className="text-xs text-bone-3">
+          {blockMode
+            ? "Drag a column to block out time."
+            : "Tap anything to manage it."}
+        </p>
+        <button
+          type="button"
+          onClick={() => setBlockMode((on) => !on)}
+          aria-pressed={blockMode}
+          className={`shrink-0 rounded-[3px] border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            blockMode
+              ? "border-off bg-off-dim text-off"
+              : "border-line text-bone-2"
+          }`}
+        >
+          {blockMode ? "Done blocking" : "Block time"}
+        </button>
+      </div>
+
+      <div className="snap-x snap-proximity overflow-x-auto overscroll-x-contain scroll-pl-14 rounded-[3px] border border-line bg-surface">
       <div className="flex">
         {/* The hour gutter stays put while the chairs pan past it. Panning
             it off the side left a grid of unlabelled boxes. */}
@@ -178,7 +206,9 @@ export function DayCalendar({
             </h3>
 
             <div
-              className={`relative touch-auto select-none ${
+              className={`relative select-none ${
+                blockMode ? "touch-none" : "touch-auto"
+              } ${
                 drag?.barberId === day.barberId
                   ? "bg-accent-dim/30 ring-1 ring-inset ring-accent/40"
                   : ""
@@ -241,6 +271,7 @@ export function DayCalendar({
           </div>
           );
         })}
+        </div>
       </div>
 
       {proposed && (
@@ -265,7 +296,7 @@ export function DayCalendar({
           onClose={() => setSelected(null)}
         />
       )}
-    </div>
+    </>
   );
 }
 
