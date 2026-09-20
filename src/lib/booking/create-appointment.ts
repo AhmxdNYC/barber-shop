@@ -6,6 +6,8 @@ import { issueManageToken } from "./manage-token";
 import { slotsForBarber } from "@/lib/availability/query";
 import { bookingDetailsFor } from "@/lib/notifications/booking-details";
 import { sendBookingConfirmation } from "@/lib/notifications/send";
+import { createDepositCheckout } from "@/lib/payments/checkout";
+import { stripeConfigured } from "@/lib/payments/stripe";
 import type { BookingResult } from "./types";
 
 /**
@@ -89,6 +91,19 @@ export async function createAppointment(
   const email = input.email.trim().toLowerCase();
   const { token, hash } = issueManageToken();
 
+  // A deposit is only taken from a client booking themselves. A barber
+  // writing in a walk-in is not going to put a card in front of someone
+  // already sitting in the chair.
+  const takingDeposit =
+    settings.depositsEnabled &&
+    stripeConfigured &&
+    service.depositCents > 0 &&
+    (input.source ?? "ONLINE") === "ONLINE";
+
+  const holdExpiresAt = takingDeposit
+    ? new Date(Date.now() + settings.holdMinutes * 60_000)
+    : null;
+
   try {
     const appointment = await withTransactionRetry(() =>
       prisma.$transaction(async (tx) => {
@@ -121,9 +136,11 @@ export async function createAppointment(
           serviceId: service.id,
           startsAt: start,
           endsAt: end,
-          // No deposit is taken yet, so a booking is confirmed outright.
-          // When Stripe lands this becomes PENDING_PAYMENT with a hold.
-          status: "CONFIRMED",
+          // A deposit turns this into a hold on the chair rather than a
+          // booking: the exclusion constraint counts PENDING_PAYMENT, so the
+          // slot is genuinely reserved, but only until the hold lapses.
+          status: takingDeposit ? "PENDING_PAYMENT" : "CONFIRMED",
+          holdExpiresAt,
           source: input.source ?? "ONLINE",
           priceCents: service.priceCents,
           depositCents: service.depositCents,
@@ -137,6 +154,43 @@ export async function createAppointment(
         });
       }),
     );
+
+    if (takingDeposit) {
+      // No confirmation yet: nothing is confirmed. The email goes out from
+      // the webhook, with a manage token issued at that point — this one is
+      // discarded rather than handed to Stripe to keep in its metadata.
+      const checkoutUrl = await createDepositCheckout({
+        appointmentId: appointment.id,
+        amountCents: service.depositCents,
+        priceCents: service.priceCents,
+        email,
+        serviceName: service.name,
+        barberName: barber.name,
+        when: formatShopWhen(start, settings.timezone),
+      }).catch(() => null);
+
+      if (!checkoutUrl) {
+        // Stripe would not open a session. Releasing the hold is the only
+        // honest outcome — leaving it would block the slot for a booking
+        // that can never be paid for.
+        await prisma.appointment.update({
+          where: { id: appointment.id },
+          data: { status: "CANCELLED", cancellationReason: "Checkout unavailable" },
+        });
+        return {
+          ok: false,
+          reason: "provider_error",
+          message: "We could not open the payment page. Nothing was charged — please try again.",
+        };
+      }
+
+      return {
+        ok: true,
+        reference: appointment.id.slice(-6).toUpperCase(),
+        message: "Taking you to pay the deposit…",
+        checkoutUrl,
+      };
+    }
 
     // The plaintext token exists only here, so the confirmation has to be
     // sent now — it carries the only cancellation link the guest will get.
@@ -168,6 +222,18 @@ export async function createAppointment(
     }
     throw error;
   }
+}
+
+/** "Saturday, September 20 at 2:30 PM", in the shop's timezone. */
+function formatShopWhen(instant: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(instant);
 }
 
 /** "YYYY-MM-DD" for an instant, in the shop's timezone. */

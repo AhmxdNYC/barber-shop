@@ -2,9 +2,26 @@ import Link from "next/link";
 import { requireBarber } from "@/lib/auth/current-user";
 import { DeviceLink } from "@/components/dashboard/device-link";
 import { logoutAction } from "@/app/actions/auth";
+import { DepositSettings } from "@/components/dashboard/deposit-settings";
+import { prisma } from "@/lib/db/client";
+import { hasDatabaseUrl } from "@/lib/db/available";
+import { stripeConfigured, stripeIsTestMode } from "@/lib/payments/stripe";
 
 export default async function SettingsPage() {
   const barber = await requireBarber();
+  const settings = hasDatabaseUrl
+    ? await prisma.shopSettings.findUnique({
+        where: { id: 1 },
+        select: { depositsEnabled: true, depositCents: true },
+      })
+    : null;
+  const adultCut = hasDatabaseUrl
+    ? await prisma.service.findFirst({
+        where: { isActive: true },
+        orderBy: { priceCents: "desc" },
+        select: { priceCents: true },
+      })
+    : null;
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-10">
@@ -31,6 +48,25 @@ export default async function SettingsPage() {
           <span className="text-sm text-bone-3">
             Scan a printed copy before running off a stack.
           </span>
+        </div>
+      </section>
+
+      <section className="mt-12 border-t border-line pt-8">
+        <h2 className="font-display text-xl font-bold">Deposits</h2>
+        <p className="mt-1 max-w-xl text-sm text-bone-3">
+          A deposit is part of the price, not extra: a client pays some of
+          the cut when they book and the rest in the chair. It is the usual
+          answer to people who book and do not turn up &mdash; and only worth
+          turning on if that is actually happening.
+        </p>
+        <div className="mt-5">
+          <DepositSettings
+            enabled={settings?.depositsEnabled ?? false}
+            amountCents={settings?.depositCents ?? 1000}
+            priceCents={adultCut?.priceCents ?? 4500}
+            connected={stripeConfigured}
+            testMode={stripeIsTestMode}
+          />
         </div>
       </section>
 

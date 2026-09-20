@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db/client";
 import { clearAppointments, hasDatabase } from "@/lib/db/test-helpers";
 import { slotsForBarber } from "@/lib/availability/query";
@@ -6,10 +6,30 @@ import { createAppointment } from "./create-appointment";
 
 const suite = hasDatabase ? describe : describe.skip;
 
-/** A Tuesday well inside the booking horizon. */
-const DATE = "2026-09-15";
+/**
+ * A real open day, found rather than written down.
+ *
+ * This was a fixed date inside the booking horizon, which is a horizon that
+ * moves: the date arrived, then passed, and every test here failed at once
+ * on a morning when nothing had been changed. Anything that depends on a
+ * date being in the future has to be told what day it is.
+ */
+let DATE = "";
 
 suite("createAppointment", () => {
+  beforeAll(async () => {
+    // Far enough out to clear lead time, near enough to stay inside the
+    // maximum advance, and scanning because the shop is not open every day.
+    for (let ahead = 3; ahead <= 30 && !DATE; ahead += 1) {
+      const day = new Date();
+      day.setUTCDate(day.getUTCDate() + ahead);
+      const key = day.toISOString().slice(0, 10);
+      const slots = await slotsForBarber("eduardo", "adult-haircut", key);
+      if (slots.length >= 4) DATE = key;
+    }
+    if (!DATE) throw new Error("No open day within a month — check the seed.");
+  });
+
   beforeEach(async () => {
     await clearAppointments();
     await prisma.client.deleteMany({ where: { email: { contains: "@booking-test" } } });

@@ -167,6 +167,9 @@ model ShopSettings {
   cancellationWindowHours Int     @default(24)
   holdMinutes             Int     @default(10)
   depositCents            Int     @default(1000)
+  /// Off until the shop has Stripe keys and wants deposits. The booking flow
+  /// reads this, not the presence of keys, so the switch is the barber's.
+  depositsEnabled         Boolean @default(false)
   instagramUrl            String?
   mapUrl                  String?
 }

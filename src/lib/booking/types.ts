@@ -48,7 +48,17 @@ export type BookingRequest = AvailabilityQuery & {
 };
 
 export type BookingResult =
-  | { ok: true; reference: string; message: string }
+  | {
+      ok: true;
+      reference: string;
+      message: string;
+      /**
+       * Set when a deposit is due. The booking exists but holds the slot
+       * only until the hold expires; it is not a booking until Stripe says
+       * the money arrived.
+       */
+      checkoutUrl?: string;
+    }
   | { ok: false; reason: "slot_taken" | "invalid" | "provider_error"; message: string };
 
 export interface BookingProvider {

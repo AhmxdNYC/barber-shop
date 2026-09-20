@@ -89,6 +89,14 @@ export function BookingFlow({
       start: slot.start,
       ...form,
     });
+    // A deposit is due: the slot is held, not booked, so hand straight over
+    // to Stripe rather than showing a confirmation for something nobody has
+    // paid for yet. Stays submitting — the page is on its way out.
+    if (outcome.ok && outcome.checkoutUrl) {
+      window.location.href = outcome.checkoutUrl;
+      return;
+    }
+
     setResult(outcome);
     setSubmitting(false);
     if (outcome.ok) setStep(4);
